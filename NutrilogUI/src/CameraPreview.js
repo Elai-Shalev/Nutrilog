@@ -4,8 +4,8 @@ const CameraPreview = ({ photo }) => {
   return (
     <View
       style={{
-        width: 300,
-        height: 300,
+        width: 600,
+        height: 600,
       }}
     >
       <View
