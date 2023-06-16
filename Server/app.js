@@ -23,9 +23,17 @@ router.get('/requestWeigh', (req, res) => {
 });
 
 router.post('/upload-photo', (req, res) => {
+  console.log("before try")
   try {
+    console.log("entered")
+    console.log("body")
+    console.log(req.body)
+    console.log(req.body.body)
+    console.log(req.body.body._parts)
+    console.log(req.body.body._parts[0][1]._data)
 
     const blob = req.file.buffer;
+    console.log("converted")
     /*
     const base64Data = req.body.image; // Assuming req.body.image contains the base64 string
     const imageDatabuffer = Buffer.from(base64Data, 'base64');
@@ -42,12 +50,14 @@ router.post('/upload-photo', (req, res) => {
           res.json({ message: 'Photo uploaded and saved' });
         }
       });
+    console.log("writed")
 
     res.sendStatus(200);
   } catch (error) {
     console.error(error);
     res.sendStatus(500);
   }
+  res.end("goodbye")
 });
 
 // Mount the router at a specific base path

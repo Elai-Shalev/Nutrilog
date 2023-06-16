@@ -66,36 +66,27 @@ export default function App() {
     const formData = new FormData();
     formData.append('photo', blob, 'photo.jpg')
 
+    const axProperties = {
+      body: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    };
+
     console.log("created json")
 
-    const response = await axios.post('http://localhost:3000/api/upload-photo',formData)
-    console.log(response)
+    try{
+      await axios.post('http://192.168.1.35:3000/api/upload-photo',axProperties);
+    }
+    catch (e){
+      console.log(e)
+    }
 
   }
 
   const getWeight = () => {
     setFoodWeighted(true)
   }
-
-  // Function to convert photo to base64
-  const convertPhotoToBase64 = async (photoUri) => {
-    try {
-      const response = await fetch(photoUri);
-      const blob = await response.blob();
-  
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          resolve(reader.result);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    } catch (error) {
-      console.error('Error converting photo to base64:', error);
-      return null;
-    }
-  };
 
 
 //*****************************************************************************
