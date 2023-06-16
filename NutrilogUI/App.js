@@ -39,8 +39,6 @@ export default function App() {
     setStartCamera(false)
   }
 
-  
-
   //This is triggered within the clear picture button
   const clearPhoto = () => {
     setSavedPhoto(null)
@@ -55,14 +53,18 @@ export default function App() {
     setPreviewVisible(false)
 
     console.log(savedPhoto)
+    console.log("trying to convert")
+
+    const responseF = await fetch(savedPhoto.uri) ;
+
+    console.log("fetch done")
     
-    console.log("trying to send")
+    const blob = await responseF.blob();
+
+    console.log("blob done")
+
     const formData = new FormData();
-    formData.append('photo', {
-      uri: savedPhoto.uri,
-      type: 'image/jpeg',
-      name: 'photo.jpg'
-    })
+    formData.append('photo', blob, 'photo.jpg')
 
     console.log("created json")
 
