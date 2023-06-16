@@ -3,6 +3,8 @@ import { Alert, Button, StyleSheet, TouchableOpacity, View, Text } from 'react-n
 import Header from './src/header';
 import { Camera } from 'expo-camera';
 import CameraPreview from './src/CameraPreview'
+import * as FileSystem from 'expo-file-system';
+import axios from 'axios';
 
 export default function App() {
   const [startCamera, setStartCamera] = useState(false) //Bollean - sets the permission to start taking a picture
@@ -31,11 +33,13 @@ export default function App() {
   //This is triggerd within the camera component inside the view 
   const takePicture = async () => {
     if (!camera) return
-    const photo = await camera.takePictureAsync()
+    const photo = await camera.takePictureAsync();
     setSavedPhoto(photo)
     setPreviewVisible(true)
     setStartCamera(false)
   }
+
+  
 
   //This is triggered within the clear picture button
   const clearPhoto = () => {
@@ -46,14 +50,50 @@ export default function App() {
   //This is triggres within the keep picture button
   //THIS FUNCTION WILL DELIVER THE PHOTO TO ETI!
   //probably will be Async :)
-  const usePhoto = () => {
+  const usePhoto = async() => {
     setPhotoChosen(true)
     setPreviewVisible(false)
+
+    console.log(savedPhoto)
+    
+    console.log("trying to send")
+    const formData = new FormData();
+    formData.append('photo', {
+      uri: savedPhoto.uri,
+      type: 'image/jpeg',
+      name: 'photo.jpg'
+    })
+
+    console.log("created json")
+
+    const response = await axios.post('http://localhost:3000/api/upload-photo',formData)
+    console.log(response)
+
   }
 
   const getWeight = () => {
     setFoodWeighted(true)
   }
+
+  // Function to convert photo to base64
+  const convertPhotoToBase64 = async (photoUri) => {
+    try {
+      const response = await fetch(photoUri);
+      const blob = await response.blob();
+  
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve(reader.result);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('Error converting photo to base64:', error);
+      return null;
+    }
+  };
 
 
 //*****************************************************************************
@@ -87,7 +127,7 @@ export default function App() {
       {photoChosen && (
         <View>
           <Text>Please Weight your food</Text>
-          <Button> onPress={getWeight} title ="I'm ready to weight! </Button>
+          <Button onPress={getWeight} title ="I'm ready to weight!" />
         </View>
 
       )}
