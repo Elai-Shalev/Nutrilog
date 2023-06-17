@@ -16,12 +16,6 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 
-
-// Define routes using the router
-router.get('/requestWeigh', (req, res) => {
-  res.json({ message: 'Sending the weigh...' });
-});
-
 router.post('/upload-photo', (req, res) => {
   console.log("before try")
   try {
@@ -58,6 +52,18 @@ router.post('/upload-photo', (req, res) => {
     res.sendStatus(500);
   }
   res.end("goodbye")
+});
+
+router.get('/start-weigh', (req, res) => {
+    
+    // activate scale function
+    let scale_reading = '2'; // function reading
+    res.json({message: 'Weight done', weigh_val: {scale_reading}})
+    
+});
+
+router.get('/identify-food', (req, res) => {
+
 });
 
 // Mount the router at a specific base path
