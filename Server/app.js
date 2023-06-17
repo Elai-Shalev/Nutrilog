@@ -1,3 +1,5 @@
+const scale = require('../Scale/read_scale.js')
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
@@ -15,17 +17,21 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+
+
 router.post('/upload-photo', (req, res) => {
   console.log("before try")
   try {
     console.log("entered")
     console.log("body")
-    console.log(req.body)
-    console.log(req.body.body)
-    console.log(req.body.body._parts)
-    console.log(req.body.body._parts[0][1]._data)
+    //console.log(req.body)
+    //console.log(req.body.body)
+    //console.log(req.body.body._parts)
+    //console.log(req.body.body._parts[0][1]._data)
 
-    const blob = req.file.buffer;
+    //const photo_buffer = req.file.buffer;
+    const file = req.files.file;
+
     console.log("converted")
     /*
     const base64Data = req.body.image; // Assuming req.body.image contains the base64 string
@@ -34,7 +40,7 @@ router.post('/upload-photo', (req, res) => {
     fs.writeFileSync(filename, imageDatabuffer, 'base64');
     */
     const filename = 'new_from_blob.jpg'
-    fs.writeFile(filename, blob, (err) => {
+    fs.writeFileSync(filename, file, (err) => {
         if (err) {
           console.error('Error saving the photo:', err);
           res.status(500).json({ error: 'Failed to save the photo' });
@@ -53,27 +59,29 @@ router.post('/upload-photo', (req, res) => {
   res.end("goodbye")
 });
 
-router.get('/start-weigh', (req, res) => {
+router.get('/start-weigh', async (req, res) => {
     
+    try {
     // activate scale function
-    let scale_reading = '2'; // function reading
+    scale.getWeight();
+    let scale_reading = await scale.find_value();
+    console.log("the weigh is: " + scale_reading)
+    
+
     const data = {
         "message": "Weigh Done",
-        "weigh_val": "2"
+        "weigh_val": scale_reading
     }
 
     res.setHeader("Content-Type", "application/json")
     res.writeHead(200);
     res.end(JSON.stringify(data,null))
-    //res.json({message: 'Weight done', weigh_val: {scale_reading}})
-    
+    }
+    catch (e){
+
+    }
 });
 
-/*
-router.get('/identify-food', (req, res) => {
-
-});
-*/
 
 // Mount the router at a specific base path
 app.use('/api', router);
