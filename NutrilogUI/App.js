@@ -10,7 +10,9 @@ export default function App() {
   const [startCamera, setStartCamera] = useState(false) //Bollean - sets the permission to start taking a picture
   const [previewVisible, setPreviewVisible] = useState(false) //Bollean - after taking a picture the picture is availble for preview
   const [photoChosen, setPhotoChosen] = useState(false) //Bollean - after preview the user chose this photo to be further used
-  const [foodWeighted, setFoodWeighted] = useState(false)
+  const [foodCurrentlyWeighted, setFoodCurrentlyWeighted] = useState(false)
+  const [doneWeighting, setDoneWeighting] = useState(false)
+  const [savedWeight, setSavedWeight] = useState(null)
   const [savedPhoto, setSavedPhoto] = useState(null) //Png- saves the picture the user took
   let camera
 
@@ -75,17 +77,26 @@ export default function App() {
 
     console.log("created json")
 
-    try{
-      await axios.post('http://192.168.1.35:3000/api/upload-photo',axProperties);
-    }
-    catch (e){
-      console.log(e)
-    }
+    // try{
+    //   await axios.post('http://192.168.1.35:3000/api/upload-photo',axProperties);
+    // }
+    // catch (e){
+    //   console.log(e)
+    // }
 
   }
 
-  const getWeight = () => {
-    setFoodWeighted(true)
+  //This function us triggered by "weight now" button
+  //It sends a request to weigh to the back end and gets the result and displays it
+  const getWeight = async() => {
+    setFoodCurrentlyWeighted(true)
+    answer = await axios.get('http://192.168.1.35:3000/api/start-weigh');
+    weight = answer.data.weigh_val
+
+  
+    setFoodCurrentlyWeighted(false)
+    setDoneWeighting(true)
+    setSavedWeight(answer)
   }
 
 
@@ -117,10 +128,21 @@ export default function App() {
           <Button onPress={usePhoto} title="Use Photo" />
         </View>
       )}
-      {photoChosen && (
+      {photoChosen && !foodCurrentlyWeighted && !doneWeighting && (
         <View>
           <Text>Please Weight your food</Text>
           <Button onPress={getWeight} title ="I'm ready to weight!" />
+        </View>
+
+      )}
+      {foodCurrentlyWeighted && (
+        <View>
+          <Text>Please Wait, now weighing your food!</Text>
+        </View>
+      )}
+      {doneWeighting && savedWeight &&  (
+        <View>
+          <Text>Your food weight: {weight}</Text>
         </View>
 
       )}

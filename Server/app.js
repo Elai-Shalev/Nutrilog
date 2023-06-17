@@ -59,12 +59,12 @@ router.get('/start-weigh', (req, res) => {
     let scale_reading = '2'; // function reading
     const data = {
         "message": "Weigh Done",
-        "weigh_val": scale_reading
+        "weigh_val": "2"
     }
 
     res.setHeader("Content-Type", "application/json")
     res.writeHead(200);
-    res.end(JSON.stringify(data,null,3))
+    res.end(JSON.stringify(data,null))
     //res.json({message: 'Weight done', weigh_val: {scale_reading}})
     
 });
