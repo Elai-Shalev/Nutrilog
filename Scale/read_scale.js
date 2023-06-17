@@ -10,11 +10,11 @@ function sleep (time) {
 const find_value = async () => {
     
     let i = 0
-    while(i < 30){
+    while(i < 70){
         
         console.log(arr)
-        if (arr.length > 5){
-            return Promise.resolve(arr[arr.length - 1])
+        if (arr.length > 3){
+            return Promise.resolve(Math.max(...arr))
         }
         else{
             await sleep(500)
@@ -37,12 +37,17 @@ const getWeight = () => {
     const parser = portInstance.pipe(new ReadlineParser({ delimiter: '\n' }));
     portInstance.on('data', (data) => {
         let val = data.toString('ascii').replace(/[\n]/, '').replace(' ', '');
-        if (val.length == 5) {
-            arr.push(parseFloat(val))
+        console.log(val)
+        console.log("X: " + val.replace('\n', ''))
+        if (i > 13 && val.length >= 5) {
+            if (parseFloat(val) != NaN) {
+                arr.push(parseFloat(val))
+            }
+            
         }
         i++;
 
-        if (i >= 25) {
+        if (i >= 50) {
             // Close the serial port after reading 1000 lines of data
             portInstance.close();
         }
