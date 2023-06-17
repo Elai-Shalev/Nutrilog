@@ -15,7 +15,6 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-
 router.post('/upload-photo', (req, res) => {
   console.log("before try")
   try {
@@ -58,13 +57,23 @@ router.get('/start-weigh', (req, res) => {
     
     // activate scale function
     let scale_reading = '2'; // function reading
-    res.json({message: 'Weight done', weigh_val: {scale_reading}})
+    const data = {
+        "message": "Weigh Done",
+        "weigh_val": scale_reading
+    }
+
+    res.setHeader("Content-Type", "application/json")
+    res.writeHead(200);
+    res.end(JSON.stringify(data,null,3))
+    //res.json({message: 'Weight done', weigh_val: {scale_reading}})
     
 });
 
+/*
 router.get('/identify-food', (req, res) => {
 
 });
+*/
 
 // Mount the router at a specific base path
 app.use('/api', router);
