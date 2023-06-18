@@ -1,18 +1,17 @@
 import { useState } from 'react'
-import { Alert, Button, StyleSheet, TouchableOpacity, View, Text } from 'react-native';
+import { Alert, Button, StyleSheet, TouchableOpacity, View, Text, Image } from 'react-native';
 import Header from './src/header';
 import { Camera } from 'expo-camera';
 import CameraPreview from './src/CameraPreview'
-import * as FileSystem from 'expo-file-system';
 import axios from 'axios';
 
 export default function App() {
   const [startCamera, setStartCamera] = useState(false) //Bollean - sets the permission to start taking a picture
   const [previewVisible, setPreviewVisible] = useState(false) //Bollean - after taking a picture the picture is availble for preview
   const [photoChosen, setPhotoChosen] = useState(false) //Bollean - after preview the user chose this photo to be further used
-  const [foodCurrentlyWeighted, setFoodCurrentlyWeighted] = useState(false)
-  const [doneWeighting, setDoneWeighting] = useState(false)
-  const [savedWeight, setSavedWeight] = useState(null)
+  const [foodCurrentlyWeighted, setFoodCurrentlyWeighted] = useState(false) //Bolean - user starts weigh and we're waiting for server's answer
+  const [doneWeighting, setDoneWeighting] = useState(false) //Bolean - got an answer from the server about weight and can show it
+  const [savedWeight, setSavedWeight] = useState(null) //String - has the weight value in it
   const [savedPhoto, setSavedPhoto] = useState(null) //Png- saves the picture the user took
   let camera
 
@@ -48,34 +47,21 @@ export default function App() {
   }
 
   //This is triggres within the keep picture button
-  //THIS FUNCTION WILL DELIVER THE PHOTO TO ETI!
-  //probably will be Async :)
+  //THIS FUNCTION WILL DELIVER THE PHOTO TO BACK
   const usePhoto = async() => {
     setPhotoChosen(true)
     setPreviewVisible(false)
 
-    console.log(savedPhoto)
-    console.log("trying to convert")
-
     const responseF = await fetch(savedPhoto.uri) ;
-
-    console.log("fetch done")
-    
     const blob = await responseF.blob();
-
-    console.log("blob done")
-
     const formData = new FormData();
     formData.append('photo', blob, 'photo.jpg')
-
     const axProperties = {
       body: formData,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     };
-
-    console.log("created json")
 
     // try{
     //   await axios.post('http://192.168.1.35:3000/api/upload-photo',axProperties);
@@ -86,17 +72,28 @@ export default function App() {
 
   }
 
-  //This function us triggered by "weight now" button
+  //This function us triggered by "weigh now" button
   //It sends a request to weigh to the back end and gets the result and displays it
   const getWeight = async() => {
     setFoodCurrentlyWeighted(true)
-    answer = await axios.get('http://192.168.1.35:3000/api/start-weigh');
-    weight = answer.data.weigh_val
-
-  
+    try{
+      answer = await axios.get('http://192.168.1.35:3000/api/start-weigh');
+      weight = answer.data.weigh_val
+    }
+    catch (e){
+      console.log(e)
+      Alert.alert("couldn't connect to server")
+      BackHome()
+    }
     setFoodCurrentlyWeighted(false)
     setDoneWeighting(true)
     setSavedWeight(answer)
+  }
+
+  const BackHome = () => {
+    setPhotoChosen(false)
+    setDoneWeighting(false)
+    setSavedWeight(null)
   }
 
 
@@ -130,19 +127,25 @@ export default function App() {
       )}
       {photoChosen && !foodCurrentlyWeighted && !doneWeighting && (
         <View>
-          <Text>Please Weight your food</Text>
-          <Button onPress={getWeight} title ="I'm ready to weight!" />
+          <Text style={PictureSuccessfulDesign}>The picture was saved successfully!</Text>
+          <Text style={WeightRequestDesign}>Now please weigh your food</Text>
+          <Button onPress={getWeight} title ="I'm ready to weigh!" />
         </View>
 
       )}
       {foodCurrentlyWeighted && (
-        <View>
-          <Text>Please Wait, now weighing your food!</Text>
+        <View style={ImageDesign}>
+          <Text style={WeighWaitDesign1}>Please Wait</Text>
+          <Image source={require('./assets/PinkClock.png')} 
+          style={{width:200,height:200}}/>
+          <Text style={WeighWaitDesign2}>now weighing your food...</Text>
         </View>
       )}
       {doneWeighting && savedWeight &&  (
         <View>
-          <Text>Your food weight: {weight}</Text>
+          <Text style={WeightReadyDesign}>Your meal weight:{"\n"} {weight}</Text>
+          <Text style={BackHomeDesign}>In a few seconds, your meal data will be ready...</Text>
+          <Button onPress={BackHome} title ="Back to home screen" />
         </View>
 
       )}
@@ -212,6 +215,52 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
+const ImageDesign = {
+  flex:1,
+  justifyContent: 'center',
+  alignItems:'center',
+}
+
+const WeightRequestDesign = {
+  color: '#ed1c93',
+  textAlign: 'center',
+  fontSize: 35,
+  fontWeight: 700
+}
+
+const PictureSuccessfulDesign = {
+  color: '#bd0970',
+  textAlign: 'center',
+  fontSize: 20,
+  fontWeight: 500
+}
+
+const WeighWaitDesign1 = {
+  color: '#e66abc',
+  textAlign: 'center',
+  fontSize: 40,
+  fontWeight: 800
+}
+
+const WeighWaitDesign2 = {
+  color: '#e66abc',
+  textAlign: 'center',
+  fontSize: 25,
+  fontWeight: 700
+}
+
+const WeightReadyDesign = {
+  color: '#a83481',
+  textAlign: 'center',
+  fontSize: 40,
+  fontWeight: 700,
+}
+
+const BackHomeDesign = {
+  color: '#801c5e',
+  fontSize: 18
+}
 
 const buttonStyles = StyleSheet.create({
   button: {
