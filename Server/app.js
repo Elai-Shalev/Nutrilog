@@ -1,5 +1,5 @@
 const scale = require('../Scale/read_scale.js')
-const { connect, addItem, getItem }= require("./db/db.js")
+const db = require("./db/db.js")
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -18,8 +18,11 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+router.get('/', (req,res) => {
+  res.send("UP")
+})
 
-
+// Recieves a photo in __ format, does [..] with it
 router.post('/upload-photo', (req, res) => {
   console.log("before try")
   try {
@@ -60,6 +63,7 @@ router.post('/upload-photo', (req, res) => {
   res.end("goodbye")
 });
 
+// Starts weigh from device, return the result to App
 router.get('/start-weigh', async (req, res) => {
     
     try {
@@ -83,6 +87,23 @@ router.get('/start-weigh', async (req, res) => {
     }
 });
 
+// Recieves an item to add to DB. will always add to user_food collection
+router.post('/addItem', async (req,res) => {
+// app request is in this format: await axios.post('url', json={name: "Waffles", calories: 345, sodium: "24.00 mg" ...})
+  try{
+    const newItem = req.body;
+    await db.addItem(newItem, "user_food"); //module db function
+    res.send("Item added to Database")
+  }
+  catch (e) {
+    console.log(e)
+  }
+})
+
+/*
+// NOT COMPLETE --  How to specify a collection? //
+router.get('/getItemFrom', async)
+*/
 
 // Mount the router at a specific base path
 app.use('/api', router);

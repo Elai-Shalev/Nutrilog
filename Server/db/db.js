@@ -1,13 +1,13 @@
-const { MongoClient } = require("mongodb").MongoClient;
+const { MongoClient } = require("mongodb");
 
 const dbName = "NutritionalValues"
-const dbCollection = "basic_food"
 const url = 'mongodb+srv://elaishalev:DUG1pRJIwpxDW6nv@nutrilog.bjnpma1.mongodb.net/';
 const client = new MongoClient(url, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 });
 
+//connects to the MongoDB server
 async function connect() {
     try {
         await client.connect();
@@ -17,28 +17,50 @@ async function connect() {
     }
 }
 
-async function getItem(name){
-
-    const db = client.db(dbName);
-    const collection = db.collection(dbCollection);
+// Returns an Item from the Database NutritionalValues. Collection is given as parameter.
+async function getItem(itemName, dbCollection){
 
     try {
-        const item = await collection.findOne({ name: {name}})
-        if (item) {
-            console.log("Found item:", food);
-          } else {
-            console.log("Item not found");
+        connect();
+        const db = client.db(dbName);
+        const collection = db.collection(dbCollection);
+        const item = await collection.findOne({ name: {itemName}})
+            if (item) {
+                console.log("Found item:");
+                return item
+                } else {
+                console.log("Item not found");
+            }
         }
-        // continue
-    }
+
 
     catch (e) {
-        // fill in 
+        console.log(e) 
+    }
+    finally {
+        await client.close();
+        console.log('Disconnected from MongoDB');
     }
 }
 
-async function addItem(data) { //new data is a json file. 
-    // add to a different collection on "personal foods". 
+// Adds an Item to the Database NutritionalValues. Collection is given as parameter
+async function addItem(item, dbCollection) { //new data is a json file. 
+    
+    try {
+        connect();
+        const db = client.db(dbName);
+        const collection = db.collection(dbCollection);
+        const result = await collection.insertOne(item)
+        console.log('Item inserted:', result.insertedId);
+
+    }
+    catch (e) {
+        console.log(e)
+    }
+    finally {
+        await client.close();
+        console.log('Disconnected from MongoDB');
+    }
 } 
 
 module.exports = {
