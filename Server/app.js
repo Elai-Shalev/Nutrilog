@@ -1,4 +1,5 @@
 const scale = require('../Scale/read_scale.js')
+const { connect, addItem, getItem }= require("./db/db.js")
 
 const express = require('express');
 const bodyParser = require('body-parser');

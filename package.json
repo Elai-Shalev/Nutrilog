@@ -1,6 +1,19 @@
 {
+
+  "scripts": {
+    "start:dev": "NODE_ENV=dev nodemon Server/dummy_back.js",
+    "start:prod": "NODE_ENV=dev nod src/index.js"
+  },
   "dependencies": {
+    "express": "^4.18.2",
+    "ip": "^1.1.8",
     "multer": "^1.4.5-lts.1",
-    "serialport": "^11.0.0"
+    "mysql": "^2.18.1",
+    "serialport": "^11.0.0",
+    "axios": "^1.4.0",
+    "react-native-fs": "^2.20.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
   }
 }
