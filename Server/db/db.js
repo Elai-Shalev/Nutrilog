@@ -1,7 +1,7 @@
 const { MongoClient } = require("mongodb");
 
 const dbName = "NutritionalValues"
-const url = "mongodb+srv://elai-shalev:83ty07h3DGa9HJ0r@nutrilog.bjnpma1.mongodb.net/"
+const url = ""
 const client = new MongoClient(url, {
     useNewUrlParser: true,
     useUnifiedTopology: true
