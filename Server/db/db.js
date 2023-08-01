@@ -1,7 +1,7 @@
 const { MongoClient } = require("mongodb");
 
 const dbName = "NutritionalValues"
-const url = ""
+const url = "mongodb+srv://elai-shalev:83ty07h3DGa9HJ0r@nutrilog.bjnpma1.mongodb.net/"
 const client = new MongoClient(url, {
     useNewUrlParser: true,
     useUnifiedTopology: true
@@ -24,9 +24,9 @@ async function getItem(itemName, dbCollection){
         connect();
         const db = client.db(dbName);
         const collection = db.collection(dbCollection);
-        const item = await collection.findOne({ name: {itemName}})
+        const item = await collection.findOne({ name: itemName})
             if (item) {
-                console.log("Found item:");
+                console.log("Found item: ", item.name);
                 return item
                 } else {
                 console.log("Item not found");

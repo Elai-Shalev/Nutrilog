@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const axios = require('axios');
 const multer = require('multer');
+const { userInfo } = require('os');
 
 const app = express();
 app.use(express.json());
@@ -100,10 +101,55 @@ router.post('/addItem', async (req,res) => {
   }
 })
 
-/*
-// NOT COMPLETE --  How to specify a collection? //
-router.get('/getItemFrom', async)
-*/
+router.post('/getUserFood', async (req, res) => {
+  try {
+    // req head is "Content-Type: application/json"
+    // req data is {"name": "Nuts, pecans"} 
+    // url 
+    const item_name = req.body.name //the name filed in the data json beinf transfered
+    const item_info = await getItemFromDB(req.body.string, "user_food")
+    if (!item) {
+      res.end("No Item in DB")
+    } else {
+      res.setHeader("Content-Type", "application/json")
+      res.writeHead(200);
+      res.end(JSON.stringify(item_info,null))
+    }
+  }
+  catch (e) {
+    console.log(e)
+  }
+});
+
+router.post('/getBasicFood', async (req, res) => {
+  try { 
+    const item_name = req.body.name
+    const item_info = await getItemFromDB(item_name, "basic_food")
+    if (!item_info) {
+      res.end("No Item in DB")
+    } else {
+      res.setHeader("Content-Type", "application/json")
+      res.writeHead(200);
+      res.end(JSON.stringify(item_info,null))
+    }
+    
+  }
+  catch (e) {
+    console.log(e)
+  }
+});
+
+async function getItemFromDB(itemName, dbCollection){
+  try{
+    item = await db.getItem(itemName, dbCollection)
+    return item 
+
+  }
+  catch (e) {
+    comsole.log(e)
+  }
+
+}
 
 // Mount the router at a specific base path
 app.use('/api', router);
