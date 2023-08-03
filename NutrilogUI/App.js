@@ -4,6 +4,9 @@ import Header from './src/header';
 import { Camera } from 'expo-camera';
 import CameraPreview from './src/CameraPreview'
 import axios from 'axios';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Button as Btn, Badge } from 'react-native-elements';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 export default function App() {
   const [startCamera, setStartCamera] = useState(false) //Bollean - sets the permission to start taking a picture
@@ -106,97 +109,99 @@ export default function App() {
   //Those are set by the bollean startCamera and previewVisible
   //**note: don't touch anything under camera!!! EVER!!! */
   return (
-    <View style={styles.container}>
-      {!startCamera && !previewVisible && !photoChosen && (
-        <View>
-          <Header />
-          <Button
-            style={buttonStyles.button}
-            title="Add a meal"
-            color="#d13876"
-            onPress={requestPermission}
-          /> 
-        </View>
-      )}     
-      {previewVisible && (
-        <View>
-          <CameraPreview photo={savedPhoto} />
-          <Button onPress={clearPhoto} title="Clear Photo" />
-          <Button onPress={usePhoto} title="Use Photo" />
-        </View>
-      )}
-      {photoChosen && !foodCurrentlyWeighted && !doneWeighting && (
-        <View>
-          <Text style={PictureSuccessfulDesign}>The picture was saved successfully!</Text>
-          <Text style={WeightRequestDesign}>Now please weigh your food</Text>
-          <Button onPress={getWeight} title ="I'm ready to weigh!" />
-        </View>
+    <SafeAreaProvider>
+      <View style={styles.container}>
+        {!startCamera && !previewVisible && !photoChosen && (
+          <View>
+            <Header />
+            <Btn
+              style={buttonStyles.button}
+              title="Add a meal"
+              color="#d13876"
+              onPress={requestPermission}
+            /> 
+          </View>
+        )}     
+        {previewVisible && (
+          <View>
+            <CameraPreview photo={savedPhoto} />
+            <Button onPress={clearPhoto} title="Clear Photo" />
+            <Button onPress={usePhoto} title="Use Photo" />
+          </View>
+        )}
+        {photoChosen && !foodCurrentlyWeighted && !doneWeighting && (
+          <View>
+            <Text style={PictureSuccessfulDesign}>The picture was saved successfully!</Text>
+            <Text style={WeightRequestDesign}>Now please weigh your food</Text>
+            <Button onPress={getWeight} title ="I'm ready to weigh!" />
+          </View>
 
-      )}
-      {foodCurrentlyWeighted && (
-        <View style={ImageDesign}>
-          <Text style={WeighWaitDesign1}>Please Wait</Text>
-          <Image source={require('./assets/PinkClock.png')} 
-          style={{width:200,height:200}}/>
-          <Text style={WeighWaitDesign2}>now weighing your food...</Text>
-        </View>
-      )}
-      {doneWeighting && savedWeight &&  (
-        <View>
-          <Text style={WeightReadyDesign}>Your meal weight:{"\n"} {weight}</Text>
-          <Text style={BackHomeDesign}>In a few seconds, your meal data will be ready...</Text>
-          <Button onPress={BackHome} title ="Back to home screen" />
-        </View>
+        )}
+        {foodCurrentlyWeighted && (
+          <View style={ImageDesign}>
+            <Text style={WeighWaitDesign1}>Please Wait</Text>
+            <Image source={require('./assets/PinkClock.png')} 
+            style={{width:200,height:200}}/>
+            <Text style={WeighWaitDesign2}>now weighing your food...</Text>
+          </View>
+        )}
+        {doneWeighting && savedWeight &&  (
+          <View>
+            <Text style={WeightReadyDesign}>Your meal weight:{"\n"} {weight}</Text>
+            <Text style={BackHomeDesign}>In a few seconds, your meal data will be ready...</Text>
+            <Button onPress={BackHome} title ="Back to home screen" />
+          </View>
 
-      )}
-      {startCamera && (
-        <Camera
-          style={{flex: 1,width:"100%"}}
-          ref={(r) => {
-            camera = r
-          }}
-        >
-          <View
-            style={{
-              flex: 1,
-              width: '100%',
-              backgroundColor: 'transparent',
-              flexDirection: 'row'
+        )}
+        {startCamera && (
+          <Camera
+            style={{flex: 1,width:"100%"}}
+            ref={(r) => {
+              camera = r
             }}
           >
             <View
               style={{
-                position: 'absolute',
-                bottom: 0,
-                flexDirection: 'row',
                 flex: 1,
                 width: '100%',
-                padding: 20,
-                justifyContent: 'space-between'
+                backgroundColor: 'transparent',
+                flexDirection: 'row'
               }}
             >
               <View
                 style={{
-                  alignSelf: 'center',
+                  position: 'absolute',
+                  bottom: 0,
+                  flexDirection: 'row',
                   flex: 1,
-                  alignItems: 'center'
+                  width: '100%',
+                  padding: 20,
+                  justifyContent: 'space-between'
                 }}
               >
-                <TouchableOpacity
-                  onPress={takePicture}
+                <View
                   style={{
-                    width: 70,
-                    height: 70,
-                    bottom: 0,
-                    borderRadius: 50,
-                    backgroundColor: '#fff'
+                    alignSelf: 'center',
+                    flex: 1,
+                    alignItems: 'center'
                   }}
-                />
+                >
+                  <TouchableOpacity
+                    onPress={takePicture}
+                    style={{
+                      width: 70,
+                      height: 70,
+                      bottom: 0,
+                      borderRadius: 50,
+                      backgroundColor: '#fff'
+                    }}
+                  />
+                </View>
               </View>
             </View>
-          </View>
-        </Camera>)}
-    </View>
+          </Camera>)}
+      </View>
+    </SafeAreaProvider>
   );
 }
 
