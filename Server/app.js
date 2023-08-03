@@ -1,70 +1,49 @@
-const scale = require('../Scale/read_scale.js')
+//const scale = require('../Scale/read_scale.js')
 
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const axios = require('axios');
 const multer = require('multer');
+const cors = require('cors');
 
 const app = express();
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(cors());
 
 // Create a router
 const router = express.Router();
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+//const upload = multer({ storage });
+const upload = multer({ dest: 'uploads/' });
 
 
 
-router.post('/upload-photo', (req, res) => {
-  console.log("before try")
+router.post('/upload', upload.single('photo'), (req, res) => {
   try {
-    console.log("entered")
-    console.log("body")
-    //console.log(req.body)
-    //console.log(req.body.body)
-    //console.log(req.body.body._parts)
-    //console.log(req.body.body._parts[0][1]._data)
+    console.log("received req")
+    const photo = req.file;
+    console.log('Received photo:', photo);
 
-    //const photo_buffer = req.file.buffer;
-    const file = req.files.file;
-
-    console.log("converted")
-    /*
-    const base64Data = req.body.image; // Assuming req.body.image contains the base64 string
-    const imageDatabuffer = Buffer.from(base64Data, 'base64');
-    const filename = 'testi.png';
-    fs.writeFileSync(filename, imageDatabuffer, 'base64');
-    */
-    const filename = 'new_from_blob.jpg'
-    fs.writeFileSync(filename, file, (err) => {
-        if (err) {
-          console.error('Error saving the photo:', err);
-          res.status(500).json({ error: 'Failed to save the photo' });
-        } else {
-          console.log('Photo saved successfully');
-          res.json({ message: 'Photo uploaded and saved' });
-        }
-      });
-    console.log("writed")
-
-    res.sendStatus(200);
+    // Handle further processing or storage of the photo
+    // For simplicity, we'll just send a response back to the front-end
+    res.status(200).json({ message: 'Photo uploaded successfully.' });
   } catch (error) {
-    console.error(error);
-    res.sendStatus(500);
+    console.error('Error handling photo upload:', error);
+    res.status(500).json({ error: 'Error handling photo upload.' });
   }
-  res.end("goodbye")
 });
 
 router.get('/start-weigh', async (req, res) => {
     
     try {
     // activate scale function
-    scale.getWeight();
-    let scale_reading = await scale.find_value();
+    //scale.getWeight();
+    //let scale_reading = await scale.find_value();
+    scale_reading = "2";
     console.log("the weigh is: " + scale_reading)
     
 

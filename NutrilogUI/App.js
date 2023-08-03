@@ -52,6 +52,21 @@ export default function App() {
     setPhotoChosen(true)
     setPreviewVisible(false)
 
+    try {
+      const photoData = new FormData();
+      photoData.append('photo', {
+        uri: savedPhoto.uri,
+        name: 'photo.jpg',
+        type: 'image/jpg',
+      });
+    
+      const response = await axios.post('http://192.168.1.183:3000/api/upload', photoData);
+      console.log('Photo uploaded successfully:', response.data);
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+    }
+
+    /*
     const responseF = await fetch(savedPhoto.uri) ;
     const blob = await responseF.blob();
     const formData = new FormData();
@@ -64,12 +79,12 @@ export default function App() {
     };
 
     // try{
-    //   await axios.post('http://192.168.1.35:3000/api/upload-photo',axProperties);
+    //   await axios.post('http://192.168.1.183:3000/api/upload-photo',axProperties);
     // }
     // catch (e){
     //   console.log(e)
     // }
-
+    */
   }
 
   //This function us triggered by "weigh now" button
@@ -77,7 +92,7 @@ export default function App() {
   const getWeight = async() => {
     setFoodCurrentlyWeighted(true)
     try{
-      answer = await axios.get('http://192.168.1.35:3000/api/start-weigh');
+      answer = await axios.get('http://192.168.1.183:3000/api/start-weigh');
       weight = answer.data.weigh_val
     }
     catch (e){
