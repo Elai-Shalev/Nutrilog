@@ -59,32 +59,11 @@ export default function App() {
         name: 'photo.jpg',
         type: 'image/jpg',
       });
-    
       const response = await axios.post('http://192.168.1.183:3000/api/upload', photoData);
       console.log('Photo uploaded successfully:', response.data);
     } catch (error) {
       console.error('Error uploading photo:', error);
     }
-
-    /*
-    const responseF = await fetch(savedPhoto.uri) ;
-    const blob = await responseF.blob();
-    const formData = new FormData();
-    formData.append('photo', blob, 'photo.jpg')
-    const axProperties = {
-      body: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    };
-
-    // try{
-    //   await axios.post('http://192.168.1.183:3000/api/upload-photo',axProperties);
-    // }
-    // catch (e){
-    //   console.log(e)
-    // }
-    */
   }
 
   //This function us triggered by "weigh now" button
