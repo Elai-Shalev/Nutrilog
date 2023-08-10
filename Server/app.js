@@ -7,7 +7,8 @@ const axios = require('axios');
 const multer = require('multer');
 const cors = require('cors');
 const https = require('https');
-const FormData =require('form-data')
+const FormData =require('form-data');
+const path = require('path');
 
 const app = express();
 app.use(express.json());
@@ -16,7 +17,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 //food image
-const img = './uploads/istockphoto-1309352410-612x612.jpg';//change the const
+//const img = './uploads/istockphoto-1309352410-612x612.jpg';//change the const
 const api_user_token = '1652dedaea11abc60f3090bcf2a49770bcecbbc6';
 const headers = { Authorization: `Bearer ${api_user_token}` };
 
@@ -27,19 +28,25 @@ const endpoint = '/image/segmentation/complete';
 // Create a router
 const router = express.Router();
 
-const storage = multer.memoryStorage();
-//const upload = multer({ storage });
-const upload = multer({ dest: 'uploads/' });
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './uploads'); // Set the destination folder where files will be saved
+  },
+  filename: function (req, file, cb) {
+    cb(null, 'uploaded.jpg'); // Set the filename to 'uploaded.jpg'
+  },
+});
+
+const upload = multer({ storage: storage });
 
 router.post('/upload', upload.single('photo'), (req, res) => {
   try {
     console.log("received req")
     const photo = req.file;
-    //img = photo.path;
+    img = photo.path;
+    detectFoodType(img);
     console.log('Received photo:', photo);
 
-    // Handle further processing or storage of the photo
-    // For simplicity, we'll just send a response back to the front-end
     res.status(200).json({ message: 'Photo uploaded successfully.' });
   } catch (error) {
     console.error('Error handling photo upload:', error);
@@ -47,7 +54,10 @@ router.post('/upload', upload.single('photo'), (req, res) => {
   }
 });
 
-function detectFoodType(){
+module.exports = router;
+
+function detectFoodType (img){
+  console.log("enter to detection food");
   var form = new FormData();
   form.append('image', fs.createReadStream(img));
 
@@ -61,16 +71,51 @@ function detectFoodType(){
     headers: headers,
   };
 
-  const req = https.request(options,(res) => {
-    res.on('data', (d) =>{
-      process.stdout.write(d);
+  const req = https.request(options, (res) => {
+    let responseData = '';
+
+    res.on('data', (chunk) => {
+      responseData += chunk;
+    });
+
+    res.on('end', async () => {
+      try {
+        const jsonResponse = JSON.parse(responseData);
+
+        if (jsonResponse && jsonResponse.recognition_results) {
+          const recognitionResults = jsonResponse.recognition_results;
+
+          // Sort recognition results by probability in descending order
+          recognitionResults.sort((a, b) => b.prob - a.prob);
+
+          // Get the top 4 recognition results
+          const topResults = recognitionResults.slice(0, 4);
+
+          //await sendResultsToFrontend(topResults);
+
+          console.log("Top 4 Recognition Results:", topResults);
+        } else {
+          console.error('Recognition results not found in the JSON response.');
+        }
+      } catch (error) {
+        console.error('Error parsing JSON:', error);
+      }
     });
   });
 
   form.pipe(req);
 }
 
-detectFoodType();
+/*
+async function sendResultsToFrontend(results) {
+  try {
+    const response = await axios.post('/get-results', { results });
+    console.log('Results sent to frontend:', response.data);
+  } catch (error) {
+    console.error('Error sending results to frontend:', error);
+  }
+}
+*/
 
 router.get('/start-weigh', async (req, res) => {
     
