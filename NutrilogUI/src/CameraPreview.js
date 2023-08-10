@@ -4,8 +4,8 @@ const CameraPreview = ({ photo }) => {
   return (
     <View
       style={{
-        width: 650,
-        height: 650,
+        width: 550,
+        height: 550,
       }}
     >
       <View
@@ -15,7 +15,7 @@ const CameraPreview = ({ photo }) => {
           alignItems: "center",
         }}
       >
-        <Text style={{ color: "pink", fontSize: 60, fontWeight: 800 }}>
+        <Text style={{ color: "pink", fontSize: 50, fontWeight: 800 }}>
           Preview:
         </Text>
       </View>

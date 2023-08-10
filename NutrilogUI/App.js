@@ -13,7 +13,7 @@ import { Camera } from "expo-camera";
 import CameraPreview from "./src/CameraPreview";
 import axios from "axios";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Button as Btn, Badge } from "react-native-elements";
+import { Button as Btn, Badge, ButtonGroup } from "react-native-elements";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 export default function App() {
@@ -24,6 +24,16 @@ export default function App() {
   const [doneWeighting, setDoneWeighting] = useState(false); //Bolean - got an answer from the server about weight and can show it
   const [savedWeight, setSavedWeight] = useState(null); //String - has the weight value in it
   const [savedPhoto, setSavedPhoto] = useState(null); //Png- saves the picture the user took
+  const [historyPageReq, setHistoryReq] = useState(false); //Request to history page
+  const [NewMealRequest, setNewMealRequest] = useState(false); //Request to new meal
+  const [FromDataOption, setFromDataOption] = useState(false); //Selecting from data and not from photo
+  const [WaitForOptions, setWaitForOptions] = useState(false);
+  const [RecievedOptionsFromBack, setRecievedOptionsFromBack] = useState(false);
+  const [Option1FromPhotoAnalysis, setOption1FromPhotoAnalysis] = useState(1);
+  const [Option2FromPhotoAnalysis, setOption2FromPhotoAnalysis] = useState(2);
+  const [Option3FromPhotoAnalysis, setOption3FromPhotoAnalysis] = useState(3);
+  const [Option4FromPhotoAnalysis, setOption4FromPhotoAnalysis] = useState(4);
+  const [optionChosenFromList, setoptionChosenFromList] = useState(null);
   let camera;
 
   //*****************************************************************************
@@ -33,6 +43,7 @@ export default function App() {
   //This function is triggred when pressing "Add a meal"
   //If premission is allowed will further let us take a photo with setting startCamera as True
   const requestPermission = async () => {
+    setNewMealRequest(false);
     const { status } = await Camera.requestCameraPermissionsAsync();
 
     if (status === "granted") {
@@ -40,6 +51,18 @@ export default function App() {
     } else {
       Alert.alert("Access Denied!");
     }
+  };
+
+  const historyPage = () => {
+    setHistoryReq(true);
+  };
+
+  const newMeal = () => {
+    setNewMealRequest(true);
+  };
+
+  const chooseFromData = () => {
+    setFromDataOption(true);
   };
 
   //This is triggerd within the camera component inside the view
@@ -59,7 +82,9 @@ export default function App() {
 
   //This is triggres within the keep picture button
   //THIS FUNCTION WILL DELIVER THE PHOTO TO BACK
+  //This function will also get back the results
   const usePhoto = async () => {
+    setWaitForOptions(true);
     setPhotoChosen(true);
     setPreviewVisible(false);
 
@@ -73,6 +98,13 @@ export default function App() {
         "Content-Type": "multipart/form-data",
       },
     };
+    await new Promise((r) => setTimeout(r, 2000));
+    setOption1FromPhotoAnalysis("ice");
+    setOption2FromPhotoAnalysis("mellon");
+    setOption3FromPhotoAnalysis("burger");
+    setOption4FromPhotoAnalysis("lettuce");
+    setRecievedOptionsFromBack(true);
+    setWaitForOptions(false);
 
     // try{
     //   await axios.post('http://192.168.1.35:3000/api/upload-photo',axProperties);
@@ -87,8 +119,10 @@ export default function App() {
   const getWeight = async () => {
     setFoodCurrentlyWeighted(true);
     try {
-      answer = await axios.get("http://192.168.1.35:3000/api/start-weigh");
-      weight = answer.data.weigh_val;
+      // answer = await axios.get("http://192.168.1.35:3000/api/start-weigh");
+      // weight = answer.data.weigh_val;
+      weight = 5;
+      await new Promise((r) => setTimeout(r, 2000));
     } catch (e) {
       console.log(e);
       Alert.alert("couldn't connect to server");
@@ -96,13 +130,17 @@ export default function App() {
     }
     setFoodCurrentlyWeighted(false);
     setDoneWeighting(true);
-    setSavedWeight(answer);
+    // setSavedWeight(answer);
+    setSavedWeight(weight);
   };
 
   const BackHome = () => {
     setPhotoChosen(false);
     setDoneWeighting(false);
     setSavedWeight(null);
+    setHistoryReq(false);
+    setNewMealRequest(false);
+    setFromDataOption(false);
   };
 
   //*****************************************************************************
@@ -115,31 +153,54 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <View style={styles.container}>
-        {!startCamera && !previewVisible && !photoChosen && (
-          <View>
-            <Header />
-            <Btn
-              style={buttonStyles.button}
-              title="Add a meal"
-              color="#d13876"
-              onPress={requestPermission}
-            />
-          </View>
-        )}
-        {previewVisible && (
-          <View>
-            <CameraPreview photo={savedPhoto} />
-            <Button onPress={clearPhoto} title="Clear Photo" />
-            <Button onPress={usePhoto} title="Use Photo" />
-          </View>
-        )}
-        {photoChosen && !foodCurrentlyWeighted && !doneWeighting && (
+        {!startCamera &&
+          !previewVisible &&
+          !photoChosen &&
+          !historyPageReq &&
+          !NewMealRequest &&
+          !FromDataOption && (
+            <View>
+              <Header />
+              <Btn
+                icon={<Icon name="plus" size={15} color="#f01f72" />}
+                buttonStyle={buttonStyles.button}
+                containerStyle={buttonStyles.container}
+                title="Add a new meal"
+                color="#d13876"
+                onPress={newMeal}
+              />
+              <Btn
+                icon={<Icon name="info" size={15} color="#f01f72" />}
+                buttonStyle={buttonStyles.button}
+                containerStyle={buttonStyles.container}
+                title="Meal History View"
+                color="#d13876"
+                onPress={historyPage}
+              />
+            </View>
+          )}
+        {NewMealRequest && !foodCurrentlyWeighted && !doneWeighting && (
           <View>
             <Text style={PictureSuccessfulDesign}>
               The picture was saved successfully!
             </Text>
             <Text style={WeightRequestDesign}>Now please weigh your food</Text>
-            <Button onPress={getWeight} title="I'm ready to weigh!" />
+            <Btn
+              icon={<Icon name="forward" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="I'm ready to weigh"
+              color="#d13876"
+              onPress={getWeight}
+            />
+            <Btn
+              icon={<Icon name="home" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="Back home"
+              color="#d13876"
+              onPress={BackHome}
+            />
           </View>
         )}
         {foodCurrentlyWeighted && (
@@ -152,15 +213,67 @@ export default function App() {
             <Text style={WeighWaitDesign2}>now weighing your food...</Text>
           </View>
         )}
-        {doneWeighting && savedWeight && (
+        {doneWeighting &&
+          savedWeight &&
+          !startCamera &&
+          !savedPhoto &&
+          !FromDataOption && (
+            <View>
+              <Text style={WeightReadyDesign}>
+                Your meal weight:{"\n"} {weight}
+              </Text>
+              <Text style={WeighIsReadyDesign}>
+                Please Decide how to precceed:
+              </Text>
+              <Btn
+                icon={<Icon name="camera" size={15} color="#f01f72" />}
+                buttonStyle={buttonStyles.button}
+                containerStyle={buttonStyles.container}
+                title="Take a picture"
+                color="#d13876"
+                onPress={requestPermission}
+              />
+              <Btn
+                icon={<Icon name="cloud" size={15} color="#f01f72" />}
+                buttonStyle={buttonStyles.button}
+                containerStyle={buttonStyles.container}
+                title="Use existing data"
+                color="#d13876"
+                onPress={chooseFromData}
+              />
+            </View>
+          )}
+        {historyPageReq && (
           <View>
-            <Text style={WeightReadyDesign}>
-              Your meal weight:{"\n"} {weight}
-            </Text>
-            <Text style={BackHomeDesign}>
-              In a few seconds, your meal data will be ready...
-            </Text>
-            <Button onPress={BackHome} title="Back to home screen" />
+            <Btn
+              icon={<Icon name="home" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="Back home"
+              color="#d13876"
+              onPress={BackHome}
+            />
+          </View>
+        )}
+        {previewVisible && (
+          <View>
+            <CameraPreview photo={savedPhoto} />
+            <Btn
+              icon={<Icon name="camera" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="Take another one"
+              color="#d13876"
+              onPress={clearPhoto}
+            />
+            <Btn
+              icon={<Icon name="download" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="Use this photo"
+              color="#d13876"
+              onPress={usePhoto}
+            />
           </View>
         )}
         {startCamera && (
@@ -210,6 +323,39 @@ export default function App() {
               </View>
             </View>
           </Camera>
+        )}
+        {WaitForOptions && (
+          <View style={ImageDesign}>
+            <Text style={WeighWaitDesign1}>Please Wait</Text>
+            <Image
+              source={require("./assets/PinkClock.png")}
+              style={{ width: 200, height: 200 }}
+            />
+            <Text style={WeighWaitDesign2}>
+              now extracting data from picture..
+            </Text>
+          </View>
+        )}
+        {RecievedOptionsFromBack && !WaitForOptions && (
+          <ButtonGroup
+            buttons={[
+              Option1FromPhotoAnalysis,
+              Option2FromPhotoAnalysis,
+              Option3FromPhotoAnalysis,
+              Option4FromPhotoAnalysis,
+              "Other",
+            ]}
+          />
+        )}
+        {FromDataOption && (
+          <Btn
+            icon={<Icon name="home" size={15} color="#f01f72" />}
+            buttonStyle={buttonStyles.button}
+            containerStyle={buttonStyles.container}
+            title="Back home"
+            color="#d13876"
+            onPress={BackHome}
+          />
         )}
       </View>
     </SafeAreaProvider>
@@ -265,26 +411,32 @@ const WeighWaitDesign2 = {
 };
 
 const WeightReadyDesign = {
-  color: "#a83481",
+  color: "#fa4886",
   textAlign: "center",
   fontSize: 40,
   fontWeight: 700,
 };
 
-const BackHomeDesign = {
-  color: "#801c5e",
+const WeighIsReadyDesign = {
+  color: "#e05c98",
   fontSize: 18,
+  textAlign: "center",
 };
 
 const buttonStyles = StyleSheet.create({
   button: {
+    backgroundColor: "pink",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 4,
-    elevation: 3,
-    backgroundColor: "#dea9be",
+    borderRadius: 3,
+  },
+  container: {
+    width: 200,
+    marginHorizontal: 50,
+    marginVertical: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    display: "flex",
   },
   text: {
     fontSize: 16,

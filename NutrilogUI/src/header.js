@@ -8,7 +8,7 @@ const Header = () => {
         source={require("../assets/pinkScale.jpg")}
         style={{ width: 200, height: 200 }}
       />
-      <TextComponent cmd="Please press the button to add a meal:" />
+      <TextComponent cmd="Please select on option:" />
     </View>
   );
 };
