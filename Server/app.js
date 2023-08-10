@@ -24,6 +24,7 @@ const headers = { Authorization: `Bearer ${api_user_token}` };
 // Food Type Detection
 const api_url = 'https://api.logmeal.es/v2';
 const endpoint = '/image/segmentation/complete';
+//topResults = null;
 
 // Create a router
 const router = express.Router();
@@ -89,9 +90,7 @@ function detectFoodType (img){
           recognitionResults.sort((a, b) => b.prob - a.prob);
 
           // Get the top 4 recognition results
-          const topResults = recognitionResults.slice(0, 4);
-
-          //await sendResultsToFrontend(topResults);
+          topResults = recognitionResults.slice(0, 4);
 
           console.log("Top 4 Recognition Results:", topResults);
         } else {
@@ -106,16 +105,23 @@ function detectFoodType (img){
   form.pipe(req);
 }
 
-/*
-async function sendResultsToFrontend(results) {
+router.get('/get-results', async (req, res) => {
+    
   try {
-    const response = await axios.post('/get-results', { results });
-    console.log('Results sent to frontend:', response.data);
-  } catch (error) {
-    console.error('Error sending results to frontend:', error);
+  const data = {
+      "message": "",
+      "results": topResults
   }
-}
-*/
+
+  res.setHeader("Content-Type", "application/json")
+  res.writeHead(200);
+  res.end(JSON.stringify(data,null))
+  }
+  catch (e){
+
+  }
+});
+
 
 router.get('/start-weigh', async (req, res) => {
     

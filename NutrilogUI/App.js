@@ -98,13 +98,13 @@ export default function App() {
       });
       const response = await axios.post('http://192.168.1.183:3000/api/upload', photoData);
       console.log('Photo uploaded successfully:', response.data);
-      //fetchResults();//change the call place
+      fetchResults();//change the call place
     } catch (error) {
       console.error('Error uploading photo:', error);
     }
   }
 
-  /*
+  
   async function fetchResults() {
     try {
       const response = await axios.get('http://192.168.1.183:3000/api/get-results');
@@ -118,7 +118,6 @@ export default function App() {
       console.error('Error fetching results:', error);
     }
   }
-*/
 
   //This function us triggered by "weigh now" button
   //It sends a request to weigh to the back end and gets the result and displays it
