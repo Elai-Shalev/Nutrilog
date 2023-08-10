@@ -107,11 +107,19 @@ export default function App() {
   
   async function fetchResults() {
     try {
+      console.log("enter fetch");
       const response = await axios.get('http://192.168.1.183:3000/api/get-results');
       const topResults = response.data.results;
   
       // Process the top recognition results as needed
       console.log('Top Recognition Results:', topResults);
+
+      setOption1FromPhotoAnalysis(topResults[0].name);
+      setOption2FromPhotoAnalysis(topResults[1].name);
+      setOption3FromPhotoAnalysis(topResults[2].name);
+      setOption4FromPhotoAnalysis(topResults[3].name);
+      setRecievedOptionsFromBack(true);
+      setWaitForOptions(false);
       
       // Now you can update your frontend UI or perform any other actions with the data
     } catch (error) {

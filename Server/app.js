@@ -1,4 +1,4 @@
-const scale = require("../Scale/read_scale.js");
+//const scale = require("../Scale/read_scale.js");
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -127,8 +127,8 @@ router.get('/start-weigh', async (req, res) => {
     
     try {
     // activate scale function
-    scale.getWeight();
-    let scale_reading = await scale.find_value();
+    //scale.getWeight();
+    scale_reading = "2";
     console.log("the weigh is: " + scale_reading);
 
     const data = {
