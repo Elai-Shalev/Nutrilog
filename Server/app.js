@@ -1,5 +1,5 @@
 //const scale = require("../Scale/read_scale.js");
-
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
@@ -9,22 +9,13 @@ const cors = require('cors');
 const https = require('https');
 const FormData =require('form-data');
 const path = require('path');
+const request = require('request');
 
 const app = express();
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
-
-//food image
-//const img = './uploads/istockphoto-1309352410-612x612.jpg';//change the const
-const api_user_token = '1652dedaea11abc60f3090bcf2a49770bcecbbc6';
-const headers = { Authorization: `Bearer ${api_user_token}` };
-
-// Food Type Detection
-const api_url = 'https://api.logmeal.es/v2';
-const endpoint = '/image/segmentation/complete';
-//topResults = null;
 
 // Create a router
 const router = express.Router();
@@ -40,6 +31,35 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+var wheight = 10;//change to null
+var topResults = null;
+
+var wheight_done = true;//change to false
+var recognition_done = false;
+var nutrition_done = false;
+
+//first we weight the food
+router.get('/start-weigh', async (req, res) => {
+  try {
+  // activate scale function
+  //scale.getWeight();
+  scale_reading = "10";
+  console.log("the weigh is: " + scale_reading);
+
+  const data = {
+    message: "Weigh Done",
+    weigh_val: scale_reading,
+  };
+
+  res.setHeader("Content-Type", "application/json");
+  res.writeHead(200);
+  res.end(JSON.stringify(data, null));
+} catch (e) {}
+wheight = scale_reading;
+wheight_done = true;
+});
+
+//in case we want new item we upload the item's photo to the server
 router.post('/upload', upload.single('photo'), (req, res) => {
   try {
     console.log("received req")
@@ -57,13 +77,14 @@ router.post('/upload', upload.single('photo'), (req, res) => {
 
 module.exports = router;
 
+//we detect the food in the image and send 4 options to the user
 function detectFoodType (img){
   console.log("enter to detection food");
   var form = new FormData();
   form.append('image', fs.createReadStream(img));
 
   var headers = form.getHeaders();
-  headers['Authorization'] = 'Bearer 1652dedaea11abc60f3090bcf2a49770bcecbbc6';
+  headers['Authorization'] = 'Bearer '+ process.env.API_USER_TOKEN_1;
 
   const options = {
     hostname: 'api.logmeal.es',
@@ -105,8 +126,9 @@ function detectFoodType (img){
   form.pipe(req);
 }
 
+//we send the options to the frontend
 router.get('/get-results', async (req, res) => {
-    
+  while (topResults == null) {};
   try {
   const data = {
       "message": "",
@@ -122,25 +144,29 @@ router.get('/get-results', async (req, res) => {
   }
 });
 
+//we receive an option from the user-- complete!
+var user_option = "rice";
+recognition_done = true;//inside
+getFoodNutritionValues(user_option);
 
-router.get('/start-weigh', async (req, res) => {
-    
-    try {
-    // activate scale function
-    //scale.getWeight();
-    scale_reading = "2";
-    console.log("the weigh is: " + scale_reading);
+//we get the nutrition values of the option
+function getFoodNutritionValues(user_option){
+  while (wheight_done == false){};
+  var query = wheight+'g '+user_option;
+  request.get({
+    url: 'https://api.api-ninjas.com/v1/nutrition?query=' + query,
+    headers: {
+      'X-Api-Key': process.env.API_USER_TOKEN_2
+    },
+  }, function(error, response, body) {
+    if(error) return console.error('Request failed:', error);
+    else if(response.statusCode != 200) return console.error('Error:', response.statusCode, body.toString('utf8'));
+    else console.log(body)
+  });
+}
 
-    const data = {
-      message: "Weigh Done",
-      weigh_val: scale_reading,
-    };
 
-    res.setHeader("Content-Type", "application/json");
-    res.writeHead(200);
-    res.end(JSON.stringify(data, null));
-  } catch (e) {}
-});
+
 
 // Mount the router at a specific base path
 app.use("/api", router);

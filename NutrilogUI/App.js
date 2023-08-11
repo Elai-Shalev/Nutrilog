@@ -98,7 +98,7 @@ export default function App() {
       });
       const response = await axios.post('http://192.168.1.183:3000/api/upload', photoData);
       console.log('Photo uploaded successfully:', response.data);
-      fetchResults();//change the call place
+      fetchResults();
     } catch (error) {
       console.error('Error uploading photo:', error);
     }
@@ -107,7 +107,6 @@ export default function App() {
   
   async function fetchResults() {
     try {
-      console.log("enter fetch");
       const response = await axios.get('http://192.168.1.183:3000/api/get-results');
       const topResults = response.data.results;
   
