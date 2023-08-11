@@ -1,5 +1,6 @@
-//const scale = require("../Scale/read_scale.js");
-require('dotenv').config();
+//const scale = require("../Scale/read_scale.js"); --complete
+const db = require("./DB/db.js")
+const env = require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
@@ -31,18 +32,19 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-var wheight = 10;//change to null
-var topResults = null;
+var wheight = 10;//Change to null --complete
+//var topResults = null;
+var nutrition_values = null;
 
-var wheight_done = true;//change to false
+var wheight_done = true;//Change to false --complete
 var recognition_done = false;
 var nutrition_done = false;
 
-//first we weight the food
+//First we weight the food
 router.get('/start-weigh', async (req, res) => {
   try {
-  // activate scale function
-  //scale.getWeight();
+  // activate scale function --complete
+  //scale.getWeight(); --complete
   scale_reading = "10";
   console.log("the weigh is: " + scale_reading);
 
@@ -59,7 +61,7 @@ wheight = scale_reading;
 wheight_done = true;
 });
 
-//in case we want new item we upload the item's photo to the server
+//In case we want new item we upload the item's photo to the server
 router.post('/upload', upload.single('photo'), (req, res) => {
   try {
     console.log("received req")
@@ -77,9 +79,10 @@ router.post('/upload', upload.single('photo'), (req, res) => {
 
 module.exports = router;
 
-//we detect the food in the image and send 4 options to the user
+//Detect the dish in the image and send 4 options to the user
 function detectFoodType (img){
   console.log("enter to detection food");
+
   var form = new FormData();
   form.append('image', fs.createReadStream(img));
 
@@ -94,25 +97,22 @@ function detectFoodType (img){
   };
 
   const req = https.request(options, (res) => {
+    console.log("enter req");
     let responseData = '';
-
     res.on('data', (chunk) => {
       responseData += chunk;
     });
-
+    console.log(responseData);
     res.on('end', async () => {
       try {
         const jsonResponse = JSON.parse(responseData);
-
         if (jsonResponse && jsonResponse.recognition_results) {
           const recognitionResults = jsonResponse.recognition_results;
-
+          console.log(recognitionResults);
           // Sort recognition results by probability in descending order
           recognitionResults.sort((a, b) => b.prob - a.prob);
-
           // Get the top 4 recognition results
           topResults = recognitionResults.slice(0, 4);
-
           console.log("Top 4 Recognition Results:", topResults);
         } else {
           console.error('Recognition results not found in the JSON response.');
@@ -122,13 +122,12 @@ function detectFoodType (img){
       }
     });
   });
-
   form.pipe(req);
 }
 
-//we send the options to the frontend
+//Send the options to the frontend
 router.get('/get-results', async (req, res) => {
-  while (topResults == null) {};
+  //while (topResults == null) {};
   try {
   const data = {
       "message": "",
@@ -144,12 +143,12 @@ router.get('/get-results', async (req, res) => {
   }
 });
 
-//we receive an option from the user-- complete!
-var user_option = "rice";
+//Receive an option from the user-- complete!
+var user_option = "ice cream";
 recognition_done = true;//inside
 getFoodNutritionValues(user_option);
 
-//we get the nutrition values of the option
+//Get the nutrition values of the option
 function getFoodNutritionValues(user_option){
   while (wheight_done == false){};
   var query = wheight+'g '+user_option;
@@ -161,12 +160,64 @@ function getFoodNutritionValues(user_option){
   }, function(error, response, body) {
     if(error) return console.error('Request failed:', error);
     else if(response.statusCode != 200) return console.error('Error:', response.statusCode, body.toString('utf8'));
-    else console.log(body)
+    else {
+      console.log(body)
+      nutrition_done = true;
+      nutrition_values = JSON.parse(body.slice(1,-1));
+      saveMealToDB(nutrition_values);
+    }
   });
 }
 
+//Save the nutrition values in the meal history DB
+function saveMealToDB(item){
+  
+  if ( wheight_done == false || recognition_done == false || nutrition_done == false ){
+     return console.error('Error: whight, food name or nutrinion values are null');
+    }
+  console.log(typeof item);
+  addItemToDB(item, "users_history");
+  console.log(item);
+  return item;
+}
+
+//Send nutrition values to the frontend
+router.get('/get-NutritionValues', async (req, res) => {
+  while (nutrition_done == false) {};
+  try {
+  const data = {
+      "message": "",
+      "values": nutrition_values
+  }
+
+  res.setHeader("Content-Type", "application/json")
+  res.writeHead(200);
+  res.end(JSON.stringify(data,null))
+  }
+  catch (e){
+
+  }
+});
 
 
+//DB general functions
+async function getItemFromDB(itemName, dbCollection) {
+  try {
+    const item = await db.getItem(itemName, dbCollection);
+    return item;
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+async function addItemToDB(item, dbCollection) {
+  try {
+    const addedItem = await db.addItem(item, dbCollection);
+    return addedItem;
+  } catch (e) {
+    console.log(e);
+  }
+}
 
 // Mount the router at a specific base path
 app.use("/api", router);

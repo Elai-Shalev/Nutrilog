@@ -96,7 +96,7 @@ export default function App() {
         name: 'photo.jpg',
         type: 'image/jpg',
       });
-      const response = await axios.post('http://192.168.1.183:3000/api/upload', photoData);
+      const response = await axios.post('http://192.168.31.158:3000/api/upload', photoData);
       console.log('Photo uploaded successfully:', response.data);
       fetchResults();
     } catch (error) {
@@ -107,7 +107,7 @@ export default function App() {
   
   async function fetchResults() {
     try {
-      const response = await axios.get('http://192.168.1.183:3000/api/get-results');
+      const response = await axios.get('http://192.168.31.158:3000/api/get-results');
       const topResults = response.data.results;
   
       // Process the top recognition results as needed
@@ -120,9 +120,24 @@ export default function App() {
       setRecievedOptionsFromBack(true);
       setWaitForOptions(false);
       
-      // Now you can update your frontend UI or perform any other actions with the data
     } catch (error) {
       console.error('Error fetching results:', error);
+    }
+  }
+
+  //Send the user's option to the backend --complete
+   //inside- ask for the nutritional values of the food
+
+  //Receive the nutrition values from the backend 
+  async function getNutritionValuesFromServer(){
+    try {
+      console.log("enter getNutritionValues"); //check if can e removed --complete
+      const response = await axios.get('http://192.168.31.158:3000/api/get-NutritionValues');
+      const nutrition_values = response.data.values;
+
+      console.log('The Nutrition Values are :', nutrition_values);
+    } catch (error) {
+      console.error('Error getting Nutrition Values:', error);
     }
   }
 
@@ -131,7 +146,7 @@ export default function App() {
   const getWeight = async() => {
     setFoodCurrentlyWeighted(true)
     try{
-      answer = await axios.get('http://192.168.1.183:3000/api/start-weigh');
+      answer = await axios.get('http://192.168.31.158:3000/api/start-weigh');
       weight = answer.data.weigh_val
     }
     catch (e){
@@ -141,7 +156,7 @@ export default function App() {
     }
     setFoodCurrentlyWeighted(false);
     setDoneWeighting(true);
-    // setSavedWeight(answer);
+    // setSavedWeight(answer); --complete
     setSavedWeight(weight);
   };
 
