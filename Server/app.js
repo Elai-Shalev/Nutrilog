@@ -135,16 +135,42 @@ router.get('/get-results', async (req, res) => {
     res.setHeader("Content-Type", "application/json");
     var jsonData = JSON.stringify(data, null); // Convert the data to JSON string
     res.status(200).json({ status: 'success', data: jsonData }); // Send the response once
-    topResults = null;
   } else {
     res.json({ status: 'processing' });
   }
 });
 
-//Receive an option from the user-- complete!
-var user_option = "ice cream";
-recognition_done = true;//inside
-//getFoodNutritionValues(user_option);
+//Receive an option from the user
+router.post('/get-option-index', (req, res) => {
+  try{
+    console.log(req.body);
+    console.log(topResults);
+    const ind = req.body.option_index;
+    const user_option = topResults[ind].name;
+    console.log('the users option is ' + user_option);
+    recognition_done = true;
+    getFoodNutritionValues(user_option);
+    res.json({ status: 'success' });
+} catch (error) {
+  console.error('Error:', error);
+  res.status(500).json({ status: 'error', message: 'Internal server error' });
+}
+});
+
+//Send the nutrition values to the frontend
+router.get('/get-NutritionValues', async (req, res) => {
+  if (nutrition_values !== null) {
+    var data = {
+      "message": "",
+      "nutrition_values": nutrition_values
+    };
+    res.setHeader("Content-Type", "application/json");
+    var jsonData = JSON.stringify(data, null); // Convert the data to JSON string
+    res.status(200).json({ status: 'success', data: jsonData }); // Send the response once
+  } else {
+    res.json({ status: 'processing' });
+  }
+});
 
 //Get the nutrition values of the option
 function getFoodNutritionValues(user_option){
@@ -161,19 +187,19 @@ function getFoodNutritionValues(user_option){
     else {
       console.log(body)
       nutrition_done = true;
-      nutrition_values = JSON.parse(body.slice(1,-1));
-      saveMealToDB(nutrition_values);
+      nutrition_values = JSON.parse(body);
+      console.log(nutrition_values);
+      saveMealToDB(nutrition_values[0]); //save only the first item --complete
     }
   });
 }
 
 //Save the nutrition values in the meal history DB
 function saveMealToDB(item){
-  
+  console.log("enter to saveMealToDB")
   if ( wheight_done == false || recognition_done == false || nutrition_done == false ){
      return console.error('Error: whight, food name or nutrinion values are null');
     }
-  console.log(typeof item);
   addItemToDB(item, "users_history");
   console.log(item);
   return item;

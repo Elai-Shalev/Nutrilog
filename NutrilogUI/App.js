@@ -142,8 +142,8 @@ export default function App() {
         if (data.status === "success") {
           // Process the received result from the server
           console.log("received data");
-          console.log(data.data);
-          const topResults = data.data.results;
+          const data_json = JSON.parse(data.data);
+          const topResults = data_json.results;
           console.log(topResults);
 
           // Assuming these lines are related to handling the received data
@@ -162,24 +162,6 @@ export default function App() {
       .catch((error) => {
         console.error("Error:", error);
       });
-  }
-
-  //Send the user's option to the backend --complete
-  //inside- ask for the nutritional values of the food
-
-  //Receive the nutrition values from the backend
-  async function getNutritionValuesFromServer() {
-    try {
-      console.log("enter getNutritionValues"); //check if can e removed --complete
-      const response = await axios.get(
-        "http://192.168.31.158:3000/api/get-NutritionValues"
-      );
-      const nutrition_values = response.data.values;
-
-      console.log("The Nutrition Values are :", nutrition_values);
-    } catch (error) {
-      console.error("Error getting Nutrition Values:", error);
-    }
   }
 
   //This function us triggered by "weigh now" button
@@ -205,9 +187,40 @@ export default function App() {
     if (index === 4) {
       fillMealForm();
     } else {
-      console.log("going to back");
+      //Send to server the index of the user's option
+      try {
+        const indexData = {option_index: index};
+        const response = await axios.post(
+          'http://192.168.31.158:3000/api/get-option-index',
+          indexData);
+          console.log("call to  getNutritionValuesFromServer func");
+          getNutritionValuesFromServer();
+      } catch (error) {
+        console.error("Error getting nutrition_values", error);
+      }
     }
   };
+
+  async function getNutritionValuesFromServer(){
+    await axios.get('http://192.168.31.158:3000/api/get-NutritionValues')
+    .then((response) => {
+      const data = response.data;
+      if (data.status === "success") {
+        // Process the received result from the server
+        console.log("received data");
+        const data_json = JSON.parse(data.data);
+        const nutrition_values = data_json.nutrition_values; //send to summery --complete
+        console.log(nutrition_values);
+      } else if (data.status === "processing") {
+        console.log("still processing");
+        // If still processing, continue polling
+        setTimeout(getNutritionValuesFromServer, 1000); // Poll every 1 second
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+}
 
   const fillMealForm = () => {
     setfillMealFormSelected(true);
@@ -226,6 +239,8 @@ export default function App() {
   };
 
   const handleSubmit = () => {
+    //Save input values to the users_food DB --complete
+
     console.log("Input Values:", inputValues);
   };
 
