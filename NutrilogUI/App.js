@@ -28,7 +28,7 @@ export default function App() {
   const [NewMealRequest, setNewMealRequest] = useState(false); //Request to new meal
   const [FromDataOption, setFromDataOption] = useState(false); //Selecting from data and not from photo
   const [WaitForOptions, setWaitForOptions] = useState(false);
-  const [RecievedOptionsFromBack, setRecievedOptionsFromBack] = useState(false);
+  const [ReceievedOptionsFromBack, setReceivedOptionsFromBack] = useState(false);
   const [Option1FromPhotoAnalysis, setOption1FromPhotoAnalysis] = useState(1);
   const [Option2FromPhotoAnalysis, setOption2FromPhotoAnalysis] = useState(2);
   const [Option3FromPhotoAnalysis, setOption3FromPhotoAnalysis] = useState(3);
@@ -98,33 +98,43 @@ export default function App() {
       });
       const response = await axios.post('http://192.168.31.158:3000/api/upload', photoData);
       console.log('Photo uploaded successfully:', response.data);
-      fetchResults();
+      pollForResult();
     } catch (error) {
       console.error('Error uploading photo:', error);
     }
   }
 
   
-  async function fetchResults() {
-    try {
-      const response = await axios.get('http://192.168.31.158:3000/api/get-results');
-      const topResults = response.data.results;
+  async function pollForResult() {
+    await axios
+      .get('http://192.168.31.158:3000/api/get-results')
+      .then(response => {
+        const data = response.data;
+        if (data.status === 'success') {
+          // Process the received result from the server
+          console.log("received data");
+          console.log(data.data);
+          const topResults = data.data.results;
+          console.log(topResults);
   
-      // Process the top recognition results as needed
-      console.log('Top Recognition Results:', topResults);
-
-      setOption1FromPhotoAnalysis(topResults[0].name);
-      setOption2FromPhotoAnalysis(topResults[1].name);
-      setOption3FromPhotoAnalysis(topResults[2].name);
-      setOption4FromPhotoAnalysis(topResults[3].name);
-      setRecievedOptionsFromBack(true);
-      setWaitForOptions(false);
-      
-    } catch (error) {
-      console.error('Error fetching results:', error);
-    }
+          // Assuming these lines are related to handling the received data
+          setOption1FromPhotoAnalysis(topResults[0].name);
+          setOption2FromPhotoAnalysis(topResults[1].name);
+          setOption3FromPhotoAnalysis(topResults[2].name);
+          setOption4FromPhotoAnalysis(topResults[3].name);
+          setReceivedOptionsFromBack(true);
+          setWaitForOptions(false);
+        } else if (data.status === 'processing') {
+          console.log("still processing");
+          // If still processing, continue polling
+          setTimeout(pollForResult, 1000); // Poll every 1 second
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
   }
-
+ 
   //Send the user's option to the backend --complete
    //inside- ask for the nutritional values of the food
 
@@ -362,7 +372,7 @@ export default function App() {
             </Text>
           </View>
         )}
-        {RecievedOptionsFromBack && !WaitForOptions && (
+        {ReceievedOptionsFromBack && !WaitForOptions && (
           <ButtonGroup
             buttons={[
               Option1FromPhotoAnalysis,

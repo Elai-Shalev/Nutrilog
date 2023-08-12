@@ -33,7 +33,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 var wheight = 10;//Change to null --complete
-//var topResults = null;
+var topResults = null;
 var nutrition_values = null;
 
 var wheight_done = true;//Change to false --complete
@@ -127,26 +127,24 @@ function detectFoodType (img){
 
 //Send the options to the frontend
 router.get('/get-results', async (req, res) => {
-  //while (topResults == null) {};
-  try {
-  const data = {
+  if (topResults !== null) {
+    var data = {
       "message": "",
       "results": topResults
-  }
-
-  res.setHeader("Content-Type", "application/json")
-  res.writeHead(200);
-  res.end(JSON.stringify(data,null))
-  }
-  catch (e){
-
+    };
+    res.setHeader("Content-Type", "application/json");
+    var jsonData = JSON.stringify(data, null); // Convert the data to JSON string
+    res.status(200).json({ status: 'success', data: jsonData }); // Send the response once
+    topResults = null;
+  } else {
+    res.json({ status: 'processing' });
   }
 });
 
 //Receive an option from the user-- complete!
 var user_option = "ice cream";
 recognition_done = true;//inside
-getFoodNutritionValues(user_option);
+//getFoodNutritionValues(user_option);
 
 //Get the nutrition values of the option
 function getFoodNutritionValues(user_option){
