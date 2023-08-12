@@ -239,9 +239,22 @@ export default function App() {
   };
 
   const handleSubmit = () => {
-    //Save input values to the users_food DB --complete
-
+    //Send the values to the server 
+    sendMealValues(inputValues);
     console.log("Input Values:", inputValues);
+  };
+
+  const sendMealValues = async (input) => {
+    console.log("input: ", input);
+    try {
+      const data = {meal_values: input};
+      const response = await axios.post(
+        'http://192.168.31.158:3000/api/get-meal-values',
+        data);
+        console.log("Sent the mea values to the server ");
+    } catch (error) {
+      console.error("Error sending the meal values to the server", error);
+    }
   };
 
   const BackHome = () => {

@@ -194,6 +194,19 @@ function getFoodNutritionValues(user_option){
   });
 }
 
+//Receive an option from the user
+router.post('/get-meal-values', (req, res) => {
+  try{
+    const meal = req.body.meal_values;
+    console.log(meal);
+    addItemToDB(meal,"user_food");
+    res.json({ status: 'success' });
+} catch (error) {
+  console.error('Error:', error);
+  res.status(500).json({ status: 'error', message: 'Internal server error' });
+}
+});
+
 //Save the nutrition values in the meal history DB
 function saveMealToDB(item){
   console.log("enter to saveMealToDB")
