@@ -71,23 +71,96 @@ export default function App() {
     "dashboard",
   ]; // Define an array of icon names
   const [mealNutritionValues, setmealNutritionValues] = useState({
-    name: "Pasta",
-    calories: "100",
-    fat_total_g: "3",
-    fat_saturated_g: "2",
-    protein_g: "30",
-    sodium_mg: "4",
-    potassium_mg: "22",
-    cholesterol_mg: "1",
-    carbohydrates_total_g: "2",
-    fiber_g: "3",
-    sugar_g: "3",
+    name: "Potato and lamb",
+    calories: "",
+    fat_total_g: "",
+    fat_saturated_g: "",
+    protein_g: "",
+    sodium_mg: "",
+    potassium_mg: "",
+    cholesterol_mg: "",
+    carbohydrates_total_g: "",
+    fiber_g: "",
+    sugar_g: "",
   });
+  const [historyFromServer, setHistoryFromServer] = useState([
+    {
+      name: "Rice with beans",
+      calories: "",
+      fat_total_g: "",
+      fat_saturated_g: "",
+      protein_g: "10",
+      sodium_mg: "",
+      potassium_mg: "",
+      cholesterol_mg: "",
+      carbohydrates_total_g: "",
+      fiber_g: "",
+      sugar_g: "",
+      timestamp: "2023-08-13T18:54:46.753Z",
+    },
+    {
+      name: "Turkey sandwitch",
+      calories: "",
+      fat_total_g: "",
+      fat_saturated_g: "",
+      protein_g: "30",
+      sodium_mg: "",
+      potassium_mg: "",
+      cholesterol_mg: "",
+      carbohydrates_total_g: "",
+      fiber_g: "",
+      sugar_g: "",
+      timestamp: "2023-08-12T18:54:46.753Z",
+    },
+    {
+      name: "Pasta carbonara",
+      calories: "",
+      fat_total_g: "",
+      fat_saturated_g: "",
+      protein_g: "22",
+      sodium_mg: "",
+      potassium_mg: "",
+      cholesterol_mg: "",
+      carbohydrates_total_g: "",
+      fiber_g: "",
+      sugar_g: "",
+      timestamp: "2023-08-10T18:54:46.753Z",
+    },
+    {
+      name: "Burger and fries",
+      calories: "",
+      fat_total_g: "",
+      fat_saturated_g: "",
+      protein_g: "8",
+      sodium_mg: "",
+      potassium_mg: "",
+      cholesterol_mg: "",
+      carbohydrates_total_g: "",
+      fiber_g: "",
+      sugar_g: "",
+      timestamp: "2023-08-09T18:54:46.753Z",
+    },
+    {
+      name: "Yougurt with granola",
+      calories: "",
+      fat_total_g: "",
+      fat_saturated_g: "",
+      protein_g: "14",
+      sodium_mg: "",
+      potassium_mg: "",
+      cholesterol_mg: "",
+      carbohydrates_total_g: "",
+      fiber_g: "",
+      sugar_g: "",
+      timestamp: "2023-08-09T12:54:46.753Z",
+    },
+  ]);
   const [summaryIsReady, setsummaryIsReady] = useState(false);
   const [searchInDB, setsearchInDB] = useState(false);
   const [inputForSearchInDB, setinputForSearchInDB] = useState("");
+  const [HistoryMealIndex, setHistoryMealIndex] = useState(-1);
   let camera;
-  const IPAddress = "10.0.0.31";
+  const IPAddress = "192.168.1.35";
 
   //*****************************************************************************
   //*******************************Functions:************************************
@@ -254,18 +327,26 @@ export default function App() {
           console.log("received data");
           const data_json = JSON.parse(data.data);
           const nutrition_values = data_json.nutrition_values;
+          console.log(typeof nutrition_values);
           if (nutrition_values == "not found") {
             console.log("not found item");
+            Alert.alert("Your option could not be found in DB");
+            BackHome();
             //func not found- go to fill form
           } else {
-            setmealNutritionValues({
-              ...mealNutritionValues,
-              ...nutrition_values,
+            const updatedValues = { ...mealNutritionValues };
+            nutrition_values.forEach((item) => {
+              for (const key in item) {
+                if (updatedValues.hasOwnProperty(key)) {
+                  updatedValues[key] = String(item[key]);
+                }
+              }
             });
+            setmealNutritionValues(updatedValues);
             //send to summery
+            console.log("updated:", updatedValues);
             showSummary();
           }
-          console.log(nutrition_values);
         } else if (data.status === "processing") {
           console.log("still processing");
           // If still processing, continue polling
@@ -351,6 +432,10 @@ export default function App() {
     setsummaryIsReady(true);
   };
 
+  showHistoryMealSummary = (value) => {
+    setHistoryMealIndex(value);
+  };
+
   const BackHome = () => {
     setStartCamera(false);
     setPreviewVisible(false);
@@ -384,22 +469,95 @@ export default function App() {
       sugar_g: "",
     });
     setmealNutritionValues({
-      name: "Pasta",
-      calories: "100",
-      fat_total_g: "3",
-      fat_saturated_g: "2",
-      protein_g: "30",
-      sodium_mg: "4",
-      potassium_mg: "22",
-      cholesterol_mg: "1",
-      carbohydrates_total_g: "2",
-      fiber_g: "3",
-      sugar_g: "3",
+      name: "",
+      calories: "",
+      fat_total_g: "",
+      fat_saturated_g: "",
+      protein_g: "",
+      sodium_mg: "",
+      potassium_mg: "",
+      cholesterol_mg: "",
+      carbohydrates_total_g: "",
+      fiber_g: "",
+      sugar_g: "",
     });
+    setHistoryFromServer([
+      {
+        name: "Rice with beans",
+        calories: "",
+        fat_total_g: "",
+        fat_saturated_g: "",
+        protein_g: "10",
+        sodium_mg: "",
+        potassium_mg: "",
+        cholesterol_mg: "",
+        carbohydrates_total_g: "",
+        fiber_g: "",
+        sugar_g: "",
+        timestamp: "2023-08-13T18:54:46.753Z",
+      },
+      {
+        name: "Turkey sandwitch",
+        calories: "",
+        fat_total_g: "",
+        fat_saturated_g: "",
+        protein_g: "30",
+        sodium_mg: "",
+        potassium_mg: "",
+        cholesterol_mg: "",
+        carbohydrates_total_g: "",
+        fiber_g: "",
+        sugar_g: "",
+        timestamp: "2023-08-12T18:54:46.753Z",
+      },
+      {
+        name: "Pasta carbonara",
+        calories: "",
+        fat_total_g: "",
+        fat_saturated_g: "",
+        protein_g: "22",
+        sodium_mg: "",
+        potassium_mg: "",
+        cholesterol_mg: "",
+        carbohydrates_total_g: "",
+        fiber_g: "",
+        sugar_g: "",
+        timestamp: "2023-08-10T18:54:46.753Z",
+      },
+      {
+        name: "Burger and fries",
+        calories: "",
+        fat_total_g: "",
+        fat_saturated_g: "",
+        protein_g: "8",
+        sodium_mg: "",
+        potassium_mg: "",
+        cholesterol_mg: "",
+        carbohydrates_total_g: "",
+        fiber_g: "",
+        sugar_g: "",
+        timestamp: "2023-08-09T18:54:46.753Z",
+      },
+      {
+        name: "Yougurt with granola",
+        calories: "",
+        fat_total_g: "",
+        fat_saturated_g: "",
+        protein_g: "14",
+        sodium_mg: "",
+        potassium_mg: "",
+        cholesterol_mg: "",
+        carbohydrates_total_g: "",
+        fiber_g: "",
+        sugar_g: "",
+        timestamp: "2023-08-09T12:54:46.753Z",
+      },
+    ]);
     setsummaryIsReady(false);
     sendResetToServer();
     setsearchInDB(false);
     setinputForSearchInDB("");
+    setHistoryMealIndex(-1);
   };
 
   async function sendResetToServer() {
@@ -510,9 +668,58 @@ export default function App() {
               />
             </View>
           )}
-        {historyPageReq && (
+        {historyPageReq && HistoryMealIndex == -1 && (
           <View style={GeneralViewStyle}>
-            <Text style={HistoryPageDesign}>Meals History:</Text>
+            <Text style={HistoryPageDesign1}>Meals History:</Text>
+            <ButtonGroup
+              buttons={historyFromServer.map((item) => (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    display: "flex",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <Icon name="calendar" />
+                  <Text
+                    style={HistorybuttonGroupStyles.textName}
+                  >{` ${item.name} :`}</Text>
+                  <Text style={HistorybuttonGroupStyles.textTime}>{` ${new Date(
+                    item.timestamp
+                  ).toLocaleString()}`}</Text>
+                </View>
+              ))}
+              selectedIndex={selectedIndex}
+              onPress={(value) => {
+                showHistoryMealSummary(value);
+              }}
+              containerStyle={HistorybuttonGroupStyles.container}
+              buttonStyle={HistorybuttonGroupStyles.button}
+              selectedButtonStyle={HistorybuttonGroupStyles.buttonPressed}
+              vertical={true}
+              innerBorderStyle={{ width: 0 }}
+            />
+            <Text style={HistoryPageDesign2}>
+              In the past{" "}
+              {Math.floor(
+                (new Date().getTime() -
+                  new Date(historyFromServer[4].timestamp).getTime()) /
+                  (1000 * 60 * 60 * 24)
+              )}{" "}
+              days, you've consumed on average{"\n"}{" "}
+              {(
+                ((Number(historyFromServer[0].protein_g) +
+                  Number(historyFromServer[1].protein_g) +
+                  Number(historyFromServer[2].protein_g) +
+                  Number(historyFromServer[3].protein_g) +
+                  Number(historyFromServer[4].protein_g)) /
+                  (5 * 40)) *
+                100
+              ).toFixed(1)}
+              % of your daily protein intake.
+              {"\n"}(Which is 40 grams)
+            </Text>
             <Btn
               icon={<Icon name="home" size={15} color="#f01f72" />}
               buttonStyle={buttonStyles.button}
@@ -687,7 +894,7 @@ export default function App() {
               }}
             />
             <Btn
-              icon={<Icon name="save" size={15} color="#f01f72" />}
+              icon={<Icon name="database" size={15} color="#f01f72" />}
               buttonStyle={buttonStyles.button}
               containerStyle={buttonStyles.container}
               title="Search"
@@ -767,6 +974,57 @@ export default function App() {
               style={{ marginVertical: 10, width: 300, height: 20 }}
               color="#fa4886"
               value={mealNutritionValues["protein_g"] / 40}
+              variant="determinate"
+              animation={true}
+            />
+            <Btn
+              icon={<Icon name="home" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="Back home"
+              color="#d13876"
+              onPress={BackHome}
+            />
+          </View>
+        )}
+        {HistoryMealIndex != -1 && (
+          <View style={GeneralViewStyle}>
+            <Text style={MealSummaryPageDesign1}>Meal Summary:</Text>
+            <Text style={MealSummaryPageDesign2}>
+              From{" "}
+              {new Date(
+                historyFromServer[HistoryMealIndex].timestamp
+              ).toLocaleString()}{" "}
+              {"\n"}
+            </Text>
+            {Object.keys(historyFromServer[HistoryMealIndex]).map(
+              (key) =>
+                key !== "timestamp" && (
+                  <View key={key} style={SummaryStyles.row}>
+                    <View style={{ width: "70%" }}>
+                      <Text style={SummaryStyles.label} numberOfLines={1}>
+                        {key}:
+                      </Text>
+                    </View>
+                    <Text style={SummaryStyles.value}>
+                      {historyFromServer[HistoryMealIndex][key]}
+                    </Text>
+                  </View>
+                )
+            )}
+            <Text style={MealSummaryPageDesign2}>
+              {"\n"}This meal comprises{" "}
+              {(
+                (historyFromServer[HistoryMealIndex]["protein_g"] / 40) *
+                100
+              ).toFixed(1)}
+              % of your daily allowance of protein, {"\n"}
+              which evaluates 40 grams.
+            </Text>
+            <LinearProgress
+              style={{ marginVertical: 10, width: 300, height: 20 }}
+              color="#fa4886"
+              value={historyFromServer[HistoryMealIndex]["protein_g"] / 40}
               variant="determinate"
               animation={true}
             />
@@ -867,11 +1125,18 @@ const FormFillingDesign2 = {
   fontWeight: 700,
 };
 
-const HistoryPageDesign = {
-  color: "#fa4886",
+const HistoryPageDesign1 = {
+  color: "#e06ca2",
   textAlign: "center",
-  fontSize: 40,
-  fontWeight: 700,
+  fontSize: 50,
+  fontWeight: 900,
+};
+
+const HistoryPageDesign2 = {
+  color: "#e06ca2",
+  textAlign: "center",
+  fontSize: 17,
+  fontWeight: 500,
 };
 
 const MealSummaryPageDesign1 = {
@@ -986,6 +1251,64 @@ const buttonGroupStyles = StyleSheet.create({
     borderColor: "#e06ca2",
     marginVertical: 5,
     overlayColor: "black",
+  },
+});
+
+const HistorybuttonGroupStyles = StyleSheet.create({
+  button: {
+    backgroundColor: "#faf5f7",
+    alignItems: "center",
+    flex: 1,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#e06ca2",
+    marginVertical: 5,
+    padding: 0,
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    display: "flex",
+    justifyContent: "flex-start",
+  },
+  container: {
+    marginHorizontal: 40,
+    marginVertical: 20,
+    alignItems: "stretch",
+    justifyContent: "center",
+    height: "50%",
+    flexDirection: "column",
+    borderWidth: 0,
+    borderColor: "transparent",
+    width: "90%",
+  },
+  textTime: {
+    fontSize: 15,
+    lineHeight: 35,
+    letterSpacing: 0.25,
+    color: "black",
+    fontWeight: 200,
+  },
+  textName: {
+    fontSize: 15,
+    lineHeight: 35,
+    letterSpacing: 0.25,
+    color: "black",
+    fontWeight: 600,
+  },
+  buttonPressed: {
+    backgroundColor: "#e85197",
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#e06ca2",
+    marginVertical: 5,
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    display: "flex",
+    justifyContent: "flex-start",
   },
 });
 
