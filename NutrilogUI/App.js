@@ -12,7 +12,13 @@ import { Camera } from "expo-camera";
 import CameraPreview from "./src/CameraPreview";
 import axios from "axios";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Button as Btn, ButtonGroup, Input } from "react-native-elements";
+import {
+  Button as Btn,
+  ButtonGroup,
+  Input,
+  LinearProgress,
+  ActivityIndicator,
+} from "react-native-elements";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 export default function App() {
@@ -28,10 +34,14 @@ export default function App() {
   const [FromDataOption, setFromDataOption] = useState(false); //Selecting from data and not from photo
   const [WaitForOptions, setWaitForOptions] = useState(false); //Waiting to server to retreive options from db
   const [ReceivedOptionsFromBack, setReceivedOptionsFromBack] = useState(false); //After Recieving Options
-  const [Option1FromPhotoAnalysis, setOption1FromPhotoAnalysis] = useState(1); // each option -1
-  const [Option2FromPhotoAnalysis, setOption2FromPhotoAnalysis] = useState(2); // each option -2
-  const [Option3FromPhotoAnalysis, setOption3FromPhotoAnalysis] = useState(3); // each option -3
-  const [Option4FromPhotoAnalysis, setOption4FromPhotoAnalysis] = useState(4); // each option -4
+  const [Option1FromPhotoAnalysis, setOption1FromPhotoAnalysis] =
+    useState("Option1"); // each option -1
+  const [Option2FromPhotoAnalysis, setOption2FromPhotoAnalysis] =
+    useState("Option2"); // each option -2
+  const [Option3FromPhotoAnalysis, setOption3FromPhotoAnalysis] =
+    useState("Option3"); // each option -3
+  const [Option4FromPhotoAnalysis, setOption4FromPhotoAnalysis] =
+    useState("Option4"); // each option -4
   const [selectedIndex, setSelectedIndex] = useState(-1); // pressed button out of 4 options + other -> button index
   const [fillMealFormSelected, setfillMealFormSelected] = useState(false); // if fifth button is pressed (other) - need to add manually the meal
   const [inputValues, setinputValues] = useState({
@@ -60,6 +70,20 @@ export default function App() {
     "dashboard",
     "dashboard",
   ]; // Define an array of icon names
+  const [mealNutritionValues, setmealNutritionValues] = useState({
+    name: "Pasta",
+    calories: "100",
+    fat_total_g: "3",
+    fat_saturated_g: "2",
+    protein_g: "30",
+    sodium_mg: "4",
+    potassium_mg: "22",
+    cholesterol_mg: "1",
+    carbohydrates_total_g: "2",
+    fiber_g: "3",
+    sugar_g: "3",
+  });
+  const [summaryIsReady, setsummaryIsReady] = useState(false);
   let camera;
   const IPAddress = "172.20.10.5";
 
@@ -189,38 +213,40 @@ export default function App() {
     } else {
       //Send to server the index of the user's option
       try {
-        const indexData = {option_index: index};
+        const indexData = { option_index: index };
         const response = await axios.post(
-          'http://192.168.31.158:3000/api/get-option-index',
-          indexData);
-          console.log("call to  getNutritionValuesFromServer func");
-          getNutritionValuesFromServer();
+          "http://192.168.31.158:3000/api/get-option-index",
+          indexData
+        );
+        console.log("call to  getNutritionValuesFromServer func");
+        getNutritionValuesFromServer();
       } catch (error) {
         console.error("Error getting nutrition_values", error);
       }
     }
   };
 
-  async function getNutritionValuesFromServer(){
-    await axios.get('http://192.168.31.158:3000/api/get-NutritionValues')
-    .then((response) => {
-      const data = response.data;
-      if (data.status === "success") {
-        // Process the received result from the server
-        console.log("received data");
-        const data_json = JSON.parse(data.data);
-        const nutrition_values = data_json.nutrition_values; //send to summery --complete
-        console.log(nutrition_values);
-      } else if (data.status === "processing") {
-        console.log("still processing");
-        // If still processing, continue polling
-        setTimeout(getNutritionValuesFromServer, 1000); // Poll every 1 second
-      }
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-    });
-}
+  async function getNutritionValuesFromServer() {
+    await axios
+      .get("http://192.168.31.158:3000/api/get-NutritionValues")
+      .then((response) => {
+        const data = response.data;
+        if (data.status === "success") {
+          // Process the received result from the server
+          console.log("received data");
+          const data_json = JSON.parse(data.data);
+          const nutrition_values = data_json.nutrition_values; //send to summery --complete
+          console.log(nutrition_values);
+        } else if (data.status === "processing") {
+          console.log("still processing");
+          // If still processing, continue polling
+          setTimeout(getNutritionValuesFromServer, 1000); // Poll every 1 second
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  }
 
   const fillMealForm = () => {
     setfillMealFormSelected(true);
@@ -239,7 +265,7 @@ export default function App() {
   };
 
   const handleSubmit = () => {
-    //Send the values to the server 
+    //Send the values to the server
     sendMealValues(inputValues);
     console.log("Input Values:", inputValues);
   };
@@ -247,23 +273,67 @@ export default function App() {
   const sendMealValues = async (input) => {
     console.log("input: ", input);
     try {
-      const data = {meal_values: input};
+      const data = { meal_values: input };
       const response = await axios.post(
-        'http://192.168.31.158:3000/api/get-meal-values',
-        data);
-        console.log("Sent the mea values to the server ");
+        "http://192.168.31.158:3000/api/get-meal-values",
+        data
+      );
+      console.log("Sent the mea values to the server ");
     } catch (error) {
       console.error("Error sending the meal values to the server", error);
     }
   };
 
+  const showSummary = () => {
+    setsummaryIsReady(true);
+  };
+
   const BackHome = () => {
+    setStartCamera(false);
+    setPreviewVisible(false);
     setPhotoChosen(false);
+    setFoodCurrentlyWeighted(false);
     setDoneWeighting(false);
     setSavedWeight(null);
+    setSavedPhoto(null);
     setHistoryReq(false);
     setNewMealRequest(false);
     setFromDataOption(false);
+    setWaitForOptions(false);
+    setReceivedOptionsFromBack(false);
+    setOption1FromPhotoAnalysis(Option1);
+    setOption2FromPhotoAnalysis(Option2);
+    setOption3FromPhotoAnalysis(Option3);
+    setOption4FromPhotoAnalysis(Option4);
+    setSelectedIndex(-1);
+    setfillMealFormSelected(false);
+    setinputValues({
+      name: "",
+      calories: "",
+      fat_total_g: "",
+      fat_saturated_g: "",
+      protein_g: "",
+      sodium_mg: "",
+      potassium_mg: "",
+      cholesterol_mg: "",
+      carbohydrates_total_g: "",
+      fiber_g: "",
+      sugar_g: "",
+    });
+    setmealNutritionValues({
+      name: "Pasta",
+      calories: "100",
+      fat_total_g: "3",
+      fat_saturated_g: "2",
+      protein_g: "30",
+      sodium_mg: "4",
+      potassium_mg: "22",
+      cholesterol_mg: "1",
+      carbohydrates_total_g: "2",
+      fiber_g: "3",
+      sugar_g: "3",
+    });
+    setsummaryIsReady(false);
   };
 
   //*****************************************************************************
@@ -281,7 +351,9 @@ export default function App() {
           !photoChosen &&
           !historyPageReq &&
           !NewMealRequest &&
-          !FromDataOption && (
+          !FromDataOption &&
+          !summaryIsReady &&
+          !ReceivedOptionsFromBack && (
             <View style={GeneralViewStyle}>
               <Header />
               <Btn
@@ -364,7 +436,8 @@ export default function App() {
             </View>
           )}
         {historyPageReq && (
-          <View>
+          <View style={GeneralViewStyle}>
+            <Text style={HistoryPageDesign}>Meals History:</Text>
             <Btn
               icon={<Icon name="home" size={15} color="#f01f72" />}
               buttonStyle={buttonStyles.button}
@@ -480,6 +553,8 @@ export default function App() {
               containerStyle={buttonGroupStyles.container}
               buttonStyle={buttonGroupStyles.button}
               textStyle={buttonGroupStyles.text}
+              vertical={true}
+              innerBorderStyle={{ width: 0 }}
             />
           </View>
         )}
@@ -528,6 +603,44 @@ export default function App() {
               title="Submit"
               color="#d13876"
               onPress={handleSubmit}
+            />
+          </View>
+        )}
+        {summaryIsReady && (
+          <View style={GeneralViewStyle}>
+            <Text style={MealSummaryPageDesign1}>Meal Summary: {"\n"}</Text>
+            {Object.keys(mealNutritionValues).map((key) => (
+              <View key={key} style={SummaryStyles.row}>
+                <View style={{ width: "70%" }}>
+                  <Text style={SummaryStyles.label} numberOfLines={1}>
+                    {key}:
+                  </Text>
+                </View>
+                <Text style={SummaryStyles.value}>
+                  {mealNutritionValues[key]}
+                </Text>
+              </View>
+            ))}
+            <Text style={MealSummaryPageDesign2}>
+              {"\n"}This meal comprises{" "}
+              {(mealNutritionValues["protein_g"] / 40) * 100}% of your daily
+              allowance of protein, {"\n"}
+              which evaluates 40 grams.
+            </Text>
+            <LinearProgress
+              style={{ marginVertical: 10, width: 300, height: 20 }}
+              color="#fa4886"
+              value={mealNutritionValues["protein_g"] / 40}
+              variant="determinate"
+              animation={true}
+            />
+            <Btn
+              icon={<Icon name="home" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="Back home"
+              color="#d13876"
+              onPress={BackHome}
             />
           </View>
         )}
@@ -618,12 +731,55 @@ const FormFillingDesign2 = {
   fontWeight: 700,
 };
 
+const HistoryPageDesign = {
+  color: "#fa4886",
+  textAlign: "center",
+  fontSize: 40,
+  fontWeight: 700,
+};
+
+const MealSummaryPageDesign1 = {
+  color: "#fa4886",
+  textAlign: "center",
+  fontSize: 40,
+  fontWeight: 700,
+};
+
+const MealSummaryPageDesign2 = {
+  color: "#fa4886",
+  textAlign: "center",
+  fontSize: 15,
+  fontWeight: 700,
+};
+
 const GeneralViewStyle = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
 };
 
+const SummaryStyles = {
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 2,
+    borderBottomWidth: 1.5,
+    borderColor: "pink",
+    alignItems: "center",
+  },
+  label: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#fa4886",
+    flex: 2,
+    width: "100%",
+  },
+  value: {
+    flex: 2,
+    fontSize: 18,
+  },
+};
 const buttonStyles = StyleSheet.create({
   button: {
     backgroundColor: "pink",
@@ -651,16 +807,24 @@ const buttonStyles = StyleSheet.create({
 
 const buttonGroupStyles = StyleSheet.create({
   button: {
-    backgroundColor: "pink",
+    backgroundColor: "#f5dfe9",
     alignItems: "center",
     justifyContent: "center",
+    flex: 1,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#e06ca2",
+    marginVertical: 5,
   },
   container: {
-    width: 400,
     marginHorizontal: 30,
     marginVertical: 20,
-    alignItems: "center",
+    alignItems: "stretch",
     justifyContent: "center",
+    height: "50%",
+    flexDirection: "column",
+    borderWidth: 0,
+    borderColor: "transparent",
   },
   text: {
     fontSize: 17,
