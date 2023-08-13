@@ -85,7 +85,7 @@ export default function App() {
   });
   const [summaryIsReady, setsummaryIsReady] = useState(false);
   let camera;
-  const IPAddress = "172.20.10.5";
+  const IPAddress = "10.0.0.31";
 
   //*****************************************************************************
   //*******************************Functions:************************************
@@ -148,7 +148,7 @@ export default function App() {
         type: "image/jpg",
       });
       const response = await axios.post(
-        "http://192.168.31.158:3000/api/upload",
+        "http://"+IPAddress+":3000/api/upload",
         photoData
       );
       console.log("Photo uploaded successfully:", response.data);
@@ -160,7 +160,7 @@ export default function App() {
 
   async function pollForResult() {
     await axios
-      .get("http://192.168.31.158:3000/api/get-results")
+      .get("http://"+IPAddress+":3000/api/get-results")
       .then((response) => {
         const data = response.data;
         if (data.status === "success") {
@@ -193,7 +193,7 @@ export default function App() {
   const getWeight = async () => {
     setFoodCurrentlyWeighted(true);
     try {
-      answer = await axios.get("http://192.168.31.158:3000/api/start-weigh");
+      answer = await axios.get("http://"+IPAddress+":3000/api/start-weigh");
       weight = answer.data.weigh_val;
     } catch (e) {
       console.log(e);
@@ -215,7 +215,7 @@ export default function App() {
       try {
         const indexData = { option_index: index };
         const response = await axios.post(
-          "http://192.168.31.158:3000/api/get-option-index",
+          "http://"+IPAddress+":3000/api/get-option-index",
           indexData
         );
         console.log("call to  getNutritionValuesFromServer func");
@@ -226,16 +226,26 @@ export default function App() {
     }
   };
 
+
   async function getNutritionValuesFromServer() {
     await axios
-      .get("http://192.168.31.158:3000/api/get-NutritionValues")
+      .get("http://"+IPAddress+":3000/api/get-NutritionValues")
       .then((response) => {
         const data = response.data;
         if (data.status === "success") {
           // Process the received result from the server
           console.log("received data");
           const data_json = JSON.parse(data.data);
-          const nutrition_values = data_json.nutrition_values; //send to summery --complete
+          const nutrition_values = data_json.nutrition_values; 
+          if(nutrition_values == "not found")
+          {
+            console.log("not found item");
+            //func not found- go to fill form
+          }
+          else
+          {
+            //send to summery --complete
+          }
           console.log(nutrition_values);
         } else if (data.status === "processing") {
           console.log("still processing");
@@ -246,6 +256,24 @@ export default function App() {
       .catch((error) => {
         console.error("Error:", error);
       });
+  }
+
+
+  //This function needs to be active when the user wants
+  //to check the nutritional values of other food from the top 4 options
+  //input item is a string with the food's name
+  async function sendNewItem(item){
+      try {
+        const data = { food_name: item };
+        const response = await axios.post(
+          "http://"+IPAddress+":3000/api/get-new-item",
+          data
+        );
+        console.log("call to getNutritionValuesFromServer func");
+        getNutritionValuesFromServer();
+      } catch (error) {
+        console.error("Error getting nutrition_values of the new option", error);
+      }
   }
 
   const fillMealForm = () => {
@@ -275,7 +303,7 @@ export default function App() {
     try {
       const data = { meal_values: input };
       const response = await axios.post(
-        "http://192.168.31.158:3000/api/get-meal-values",
+        "http://"+IPAddress+":3000/api/get-meal-values",
         data
       );
       console.log("Sent the mea values to the server ");
@@ -334,7 +362,14 @@ export default function App() {
       sugar_g: "3",
     });
     setsummaryIsReady(false);
+    sendResetToServer();
   };
+
+  async function sendResetToServer(){
+    const response =     await axios
+      .get("http://"+IPAddress+":3000/api/reset-values");
+      console.log("send reset to server");
+  }
 
   //*****************************************************************************
   //*********************************View:***************************************

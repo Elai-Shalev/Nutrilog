@@ -157,6 +157,22 @@ router.post('/get-option-index', (req, res) => {
 }
 });
 
+//Receive other option from the user
+router.post('/get-new-item', (req, res) => {
+  try{
+    console.log(req.body);
+    const user_option = req.body.food_name;
+    console.log('the users option is ' + user_option);
+    recognition_done = true;
+    getFoodNutritionValues(user_option);
+    res.json({ status: 'success' });
+} catch (error) {
+  console.error('Error:', error);
+  res.status(500).json({ status: 'error', message: 'Internal server error' });
+}
+});
+
+
 //Send the nutrition values to the frontend
 router.get('/get-NutritionValues', async (req, res) => {
   if (nutrition_values !== null) {
@@ -174,6 +190,7 @@ router.get('/get-NutritionValues', async (req, res) => {
 
 //Get the nutrition values of the option
 function getFoodNutritionValues(user_option){
+  nutrition_values = null; //check --complete
   while (wheight_done == false){};
   var query = wheight+'g '+user_option;
   request.get({
@@ -185,10 +202,20 @@ function getFoodNutritionValues(user_option){
     if(error) return console.error('Request failed:', error);
     else if(response.statusCode != 200) return console.error('Error:', response.statusCode, body.toString('utf8'));
     else {
+      // Indicates that the item is not in the DB
+      // Need to ask from the user to fill the nutritional values
+      if (Object.keys(body).length == 2)
+      {
+        console.log("not found item in DB");
+        nutrition_values = "not found";
+        return;
+      }
       console.log(body)
       nutrition_done = true;
       nutrition_values = JSON.parse(body);
       console.log(nutrition_values);
+      const timestamp = new Date().toISOString();
+      nutrition_values[0].timestamp = timestamp;
       saveMealToDB(nutrition_values[0]); //save only the first item --complete
     }
   });
@@ -198,8 +225,11 @@ function getFoodNutritionValues(user_option){
 router.post('/get-meal-values', (req, res) => {
   try{
     const meal = req.body.meal_values;
+    const timestamp = new Date().toISOString();
+    meal.timestamp = timestamp;
     console.log(meal);
     addItemToDB(meal,"user_food");
+    addItemToDB(meal, "users_history");
     res.json({ status: 'success' });
 } catch (error) {
   console.error('Error:', error);
@@ -232,9 +262,28 @@ router.get('/get-NutritionValues', async (req, res) => {
   res.end(JSON.stringify(data,null))
   }
   catch (e){
-
+  console.error('Error:', error);
+  res.status(500).json({ status: 'error', message: 'error sending nutrition values'});
   }
 });
+
+//Reset the values when user press Back Home
+router.get('/reset-values', async (req, res) => {
+  try {
+    console.log("enter to reset the values");
+    wheight = null;
+    topResults = null;
+    nutrition_values = null;
+
+    wheight_done = false;
+    recognition_done = false;
+    nutrition_done = false;
+  }
+  catch (e){
+    console.error('Error:', error);
+    res.status(500).json({ status: 'error', message: 'error reset values'});
+  }
+  });
 
 
 //DB general functions
