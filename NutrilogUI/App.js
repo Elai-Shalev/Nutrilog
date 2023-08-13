@@ -84,6 +84,8 @@ export default function App() {
     sugar_g: "3",
   });
   const [summaryIsReady, setsummaryIsReady] = useState(false);
+  const [searchInDB, setsearchInDB] = useState(false);
+  const [inputForSearchInDB, setinputForSearchInDB] = useState("");
   let camera;
   const IPAddress = "10.0.0.31";
 
@@ -114,6 +116,11 @@ export default function App() {
 
   const chooseFromData = () => {
     setFromDataOption(true);
+    setsearchInDB(false);
+  };
+
+  const searchInDBPage = () => {
+    setsearchInDB(true);
   };
 
   //This is triggerd within the camera component inside the view
@@ -130,6 +137,16 @@ export default function App() {
   const clearPhoto = () => {
     setSavedPhoto(null);
     setPreviewVisible(false);
+    setFromDataOption(false);
+  };
+
+  const SearchMealInDB = () => {
+    //Eti will now send inputForSearchInDB to back and look for it --complete
+    sendNewItem(inputForSearchInDB);
+    console.log("now looks for", inputForSearchInDB);
+    setsearchInDB(false);
+    setsummaryIsReady(true);
+    setFromDataOption(false);
   };
 
   //This is triggres within the keep picture button
@@ -148,7 +165,7 @@ export default function App() {
         type: "image/jpg",
       });
       const response = await axios.post(
-        "http://"+IPAddress+":3000/api/upload",
+        "http://" + IPAddress + ":3000/api/upload",
         photoData
       );
       console.log("Photo uploaded successfully:", response.data);
@@ -160,7 +177,7 @@ export default function App() {
 
   async function pollForResult() {
     await axios
-      .get("http://"+IPAddress+":3000/api/get-results")
+      .get("http://" + IPAddress + ":3000/api/get-results")
       .then((response) => {
         const data = response.data;
         if (data.status === "success") {
@@ -193,7 +210,7 @@ export default function App() {
   const getWeight = async () => {
     setFoodCurrentlyWeighted(true);
     try {
-      answer = await axios.get("http://"+IPAddress+":3000/api/start-weigh");
+      answer = await axios.get("http://" + IPAddress + ":3000/api/start-weigh");
       weight = answer.data.weigh_val;
     } catch (e) {
       console.log(e);
@@ -209,42 +226,44 @@ export default function App() {
   const sendChosenIndex = async (index) => {
     console.log("hi", index);
     if (index === 4) {
-      fillMealForm();
+      chooseFromData();
     } else {
       //Send to server the index of the user's option
       try {
         const indexData = { option_index: index };
         const response = await axios.post(
-          "http://"+IPAddress+":3000/api/get-option-index",
+          "http://" + IPAddress + ":3000/api/get-option-index",
           indexData
         );
         console.log("call to  getNutritionValuesFromServer func");
-        getNutritionValuesFromServer();
+        // getNutritionValuesFromServer();
+        showSummary();
       } catch (error) {
         console.error("Error getting nutrition_values", error);
       }
     }
   };
 
-
   async function getNutritionValuesFromServer() {
     await axios
-      .get("http://"+IPAddress+":3000/api/get-NutritionValues")
+      .get("http://" + IPAddress + ":3000/api/get-NutritionValues")
       .then((response) => {
         const data = response.data;
         if (data.status === "success") {
           // Process the received result from the server
           console.log("received data");
           const data_json = JSON.parse(data.data);
-          const nutrition_values = data_json.nutrition_values; 
-          if(nutrition_values == "not found")
-          {
+          const nutrition_values = data_json.nutrition_values;
+          if (nutrition_values == "not found") {
             console.log("not found item");
             //func not found- go to fill form
-          }
-          else
-          {
-            //send to summery --complete
+          } else {
+            setmealNutritionValues({
+              ...mealNutritionValues,
+              ...nutrition_values,
+            });
+            //send to summery
+            showSummary();
           }
           console.log(nutrition_values);
         } else if (data.status === "processing") {
@@ -258,27 +277,27 @@ export default function App() {
       });
   }
 
-
   //This function needs to be active when the user wants
   //to check the nutritional values of other food from the top 4 options
   //input item is a string with the food's name
-  async function sendNewItem(item){
-      try {
-        const data = { food_name: item };
-        const response = await axios.post(
-          "http://"+IPAddress+":3000/api/get-new-item",
-          data
-        );
-        console.log("call to getNutritionValuesFromServer func");
-        getNutritionValuesFromServer();
-      } catch (error) {
-        console.error("Error getting nutrition_values of the new option", error);
-      }
+  async function sendNewItem(item) {
+    try {
+      const data = { food_name: item };
+      const response = await axios.post(
+        "http://" + IPAddress + ":3000/api/get-new-item",
+        data
+      );
+      console.log("call to getNutritionValuesFromServer func");
+      getNutritionValuesFromServer();
+    } catch (error) {
+      console.error("Error getting nutrition_values of the new option", error);
+    }
   }
 
   const fillMealForm = () => {
     setfillMealFormSelected(true);
     setReceivedOptionsFromBack(false);
+    setFromDataOption(false);
   };
 
   const handleInputChange = (inputName, value) => {
@@ -296,6 +315,22 @@ export default function App() {
     //Send the values to the server
     sendMealValues(inputValues);
     console.log("Input Values:", inputValues);
+    const factor = parseFloat(savedWeight) / 100; // Calculate the factor based on the given weight
+    console.log(factor);
+
+    const modifiedValues = {};
+    for (const key in inputValues) {
+      if (inputValues.hasOwnProperty(key) && key != "name") {
+        modifiedValues[key] = (parseFloat(inputValues[key]) * factor)
+          .toFixed(1)
+          .toString();
+      }
+      if (key == "name") {
+        modifiedValues[key] = inputValues[key];
+      }
+    }
+    setmealNutritionValues({ ...mealNutritionValues, ...modifiedValues });
+    showSummary();
   };
 
   const sendMealValues = async (input) => {
@@ -303,7 +338,7 @@ export default function App() {
     try {
       const data = { meal_values: input };
       const response = await axios.post(
-        "http://"+IPAddress+":3000/api/get-meal-values",
+        "http://" + IPAddress + ":3000/api/get-meal-values",
         data
       );
       console.log("Sent the mea values to the server ");
@@ -329,10 +364,10 @@ export default function App() {
     setFromDataOption(false);
     setWaitForOptions(false);
     setReceivedOptionsFromBack(false);
-    setOption1FromPhotoAnalysis(Option1);
-    setOption2FromPhotoAnalysis(Option2);
-    setOption3FromPhotoAnalysis(Option3);
-    setOption4FromPhotoAnalysis(Option4);
+    setOption1FromPhotoAnalysis("Option1");
+    setOption2FromPhotoAnalysis("Option2");
+    setOption3FromPhotoAnalysis("Option3");
+    setOption4FromPhotoAnalysis("Option4");
     setSelectedIndex(-1);
     setfillMealFormSelected(false);
     setinputValues({
@@ -363,12 +398,15 @@ export default function App() {
     });
     setsummaryIsReady(false);
     sendResetToServer();
+    setsearchInDB(false);
+    setinputForSearchInDB("");
   };
 
-  async function sendResetToServer(){
-    const response =     await axios
-      .get("http://"+IPAddress+":3000/api/reset-values");
-      console.log("send reset to server");
+  async function sendResetToServer() {
+    const response = await axios.get(
+      "http://" + IPAddress + ":3000/api/reset-values"
+    );
+    console.log("send reset to server");
   }
 
   //*****************************************************************************
@@ -444,7 +482,9 @@ export default function App() {
           savedWeight &&
           !startCamera &&
           !savedPhoto &&
-          !FromDataOption && (
+          !FromDataOption &&
+          !summaryIsReady &&
+          !fillMealFormSelected && (
             <View style={styles.container}>
               <Text style={WeightReadyDesign}>
                 Your meal weight:{"\n"} {weight}
@@ -564,46 +604,107 @@ export default function App() {
             </Text>
           </View>
         )}
-        {ReceivedOptionsFromBack && !WaitForOptions && (
-          <View>
-            <Text style={SelectOptionsDesign1}>
-              Please select an option that matches best.
+        {ReceivedOptionsFromBack &&
+          !WaitForOptions &&
+          !summaryIsReady &&
+          !FromDataOption && (
+            <View>
+              <Text style={SelectOptionsDesign1}>
+                Please select an option that matches best.
+              </Text>
+              <Text style={SelectOptionsDesign2}>
+                If none of the options satisfies, please press other.
+              </Text>
+              <ButtonGroup
+                buttons={[
+                  Option1FromPhotoAnalysis,
+                  Option2FromPhotoAnalysis,
+                  Option3FromPhotoAnalysis,
+                  Option4FromPhotoAnalysis,
+                  "Other",
+                ]}
+                selectedIndex={selectedIndex}
+                onPress={(value) => {
+                  setSelectedIndex(value);
+                  sendChosenIndex(value);
+                }}
+                containerStyle={buttonGroupStyles.container}
+                buttonStyle={buttonGroupStyles.button}
+                selectedButtonStyle={buttonGroupStyles.buttonPressed}
+                textStyle={buttonGroupStyles.text}
+                vertical={true}
+                innerBorderStyle={{ width: 0 }}
+              />
+            </View>
+          )}
+        {FromDataOption && !searchInDB && (
+          <View style={GeneralViewStyle}>
+            <Text style={FromDataOptionDesign}>
+              Please choose how to retreive data:
             </Text>
-            <Text style={SelectOptionsDesign2}>
-              If none of the options satisfies, please press other.
-            </Text>
-            <ButtonGroup
-              buttons={[
-                Option1FromPhotoAnalysis,
-                Option2FromPhotoAnalysis,
-                Option3FromPhotoAnalysis,
-                Option4FromPhotoAnalysis,
-                "Other",
-              ]}
-              selectedIndex={selectedIndex}
-              onPress={(value) => {
-                setSelectedIndex(value);
-                sendChosenIndex(value);
-              }}
-              containerStyle={buttonGroupStyles.container}
-              buttonStyle={buttonGroupStyles.button}
-              textStyle={buttonGroupStyles.text}
-              vertical={true}
-              innerBorderStyle={{ width: 0 }}
+            <Btn
+              icon={<Icon name="search" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="Search in DB"
+              color="#d13876"
+              onPress={searchInDBPage}
+            />
+            <Btn
+              icon={<Icon name="file" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="Fill manually"
+              color="#d13876"
+              onPress={fillMealForm}
+            />
+            <Btn
+              icon={<Icon name="home" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="Back home"
+              color="#d13876"
+              onPress={BackHome}
             />
           </View>
         )}
-        {FromDataOption && (
-          <Btn
-            icon={<Icon name="home" size={15} color="#f01f72" />}
-            buttonStyle={buttonStyles.button}
-            containerStyle={buttonStyles.container}
-            title="Back home"
-            color="#d13876"
-            onPress={BackHome}
-          />
+        {searchInDB && (
+          <View style={GeneralViewStyle}>
+            <Text style={FromDataOptionDesign}>
+              Please look up your meal name:
+            </Text>
+            <Input
+              placeholder={"Enter a meal name to look for"}
+              value={inputForSearchInDB}
+              onChangeText={setinputForSearchInDB}
+              containerStyle={stylesForSheetFill.container}
+              inputContainerStyle={{ width: "100%", borderBottomWidth: 0 }}
+              leftIcon={{
+                type: "font-awesome",
+                name: "search",
+                size: 15,
+                color: "pink",
+              }}
+            />
+            <Btn
+              icon={<Icon name="save" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="Search"
+              color="#d13876"
+              onPress={SearchMealInDB}
+            />
+            <Btn
+              icon={<Icon name="rotate-right" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="Back"
+              color="#d13876"
+              onPress={chooseFromData}
+            />
+          </View>
         )}
-        {fillMealFormSelected && (
+        {fillMealFormSelected && !summaryIsReady && (
           <View style={GeneralViewStyle}>
             <Text style={FormFillingDesign1}>New Meal:</Text>
             <Text style={FormFillingDesign2}>
@@ -658,8 +759,8 @@ export default function App() {
             ))}
             <Text style={MealSummaryPageDesign2}>
               {"\n"}This meal comprises{" "}
-              {(mealNutritionValues["protein_g"] / 40) * 100}% of your daily
-              allowance of protein, {"\n"}
+              {((mealNutritionValues["protein_g"] / 40) * 100).toFixed(1)}% of
+              your daily allowance of protein, {"\n"}
               which evaluates 40 grams.
             </Text>
             <LinearProgress
@@ -787,6 +888,13 @@ const MealSummaryPageDesign2 = {
   fontWeight: 700,
 };
 
+const FromDataOptionDesign = {
+  color: "#f01f72",
+  textAlign: "center",
+  fontSize: 20,
+  fontWeight: 900,
+};
+
 const GeneralViewStyle = {
   display: "flex",
   justifyContent: "center",
@@ -850,6 +958,7 @@ const buttonGroupStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e06ca2",
     marginVertical: 5,
+    overlayColor: "black",
   },
   container: {
     marginHorizontal: 30,
@@ -866,6 +975,17 @@ const buttonGroupStyles = StyleSheet.create({
     lineHeight: 35,
     letterSpacing: 0.25,
     color: "black",
+  },
+  buttonPressed: {
+    backgroundColor: "#e85197",
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#e06ca2",
+    marginVertical: 5,
+    overlayColor: "black",
   },
 });
 
