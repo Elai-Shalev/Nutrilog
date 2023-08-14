@@ -1,20 +1,34 @@
 const { MongoClient } = require("mongodb");
 const env = require('dotenv').config();
 
-const dbName = "NutritionalValues"
-const url = process.env.MONGODB_URL
-const client = new MongoClient(url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+let client
+let dbName
+let url
 
 //connects to the MongoDB server
 async function connect() {
     try {
+        
+        dbName = "NutritionalValues"
+        url = process.env.MONGODB_URL
+        client = new MongoClient(url, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+        
         await client.connect();
         console.log("Connected to the database");
     } catch (error) {
         console.error("Error connecting to the database:", error);
+    }
+}
+
+async function disconnect() {
+    try {
+        await client.disconnect()
+        console.log("Disonnectedfrom the database");
+    } catch (error) {
+        console.error("Error disconnecting from the database:", error);
     }
 }
 
@@ -72,6 +86,7 @@ async function getLastFiveItems(dbCollection) {
 
 module.exports = {
     connect,
+    disconnect,
     addItem,
     getItem,
     getLastFiveItems,

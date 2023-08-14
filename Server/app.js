@@ -21,6 +21,8 @@ app.use(cors());
 // Create a router
 const router = express.Router();
 
+db.connect()
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, './uploads'); // Set the destination folder where files will be saved
