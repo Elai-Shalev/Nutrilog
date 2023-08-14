@@ -164,7 +164,7 @@ export default function App() {
   const [searchInCustomMeals, setsearchInCustomMeals] = useState(false);
   const [waitingforhistory, setwaitingforhistory] = useState(false);
   let camera;
-  const IPAddress = "192.168.1.35";
+  const IPAddress = "172.20.10.3";
 
   //*****************************************************************************
   //*******************************Functions:************************************
@@ -233,7 +233,7 @@ export default function App() {
 
   const SearchMealInCustomMeals = () => {
     //Eti will now send  inputForSearchCustomMeals to back and look for it --complete
-    // sendNewItem(inputForSearchInDB);
+    sendUserItem(inputForSearchCustomMeals);
     console.log("now looks for", inputForSearchCustomMeals);
     setsearchInCustomMeals(false);
     setsummaryIsReady(true);
@@ -392,6 +392,68 @@ export default function App() {
     } catch (error) {
       console.error("Error getting nutrition_values of the new option", error);
     }
+  }
+
+  //Send an item to search in user_food DB
+  async function sendUserItem(item) {
+    try {
+      const data = { food_name: item };
+      const response = await axios.post(
+        "http://" + IPAddress + ":3000/api/get-user-item",
+        data
+      );
+      console.log("call to getNutritionValuesFromDB func");
+      getNutritionValuesFromDB();
+    } catch (error) {
+      console.error("Error getting nutrition_values of the new option", error);
+    }
+  }
+
+  async function getNutritionValuesFromDB() {
+    console.log("enter to getNutritionValuesFromDB func");
+    await axios
+      .get("http://" + IPAddress + ":3000/api/get-NutritionValuesFromDB")
+      .then((response) => {
+        const data = response.data;
+        if (data.status === "success") {
+          // Process the received result from the server
+          console.log("received data");
+          const data_json = JSON.parse(data.data);
+          const nutrition_values = data_json.nutrition_values;
+          console.log(nutrition_values);
+          if (nutrition_values == "not found") {
+            console.log("not found item");
+            Alert.alert("Your option could not be found in DB");
+            BackHome();
+            //func not found- go to fill form
+          } else {
+            const updatedValues = { ...mealNutritionValues };
+            const nutrition_values_string = JSON.stringify(nutrition_values);
+            //console.log(nutrition_values_string);
+            //console.log(typeof(nutrition_values_string));
+            const nutrition_values_json = JSON.parse(nutrition_values_string);
+            //console.log(nutrition_values_json);
+            //console.log(typeof(nutrition_values_json));
+            //console.log(nutrition_values_json.length);
+            for (const key in nutrition_values_json) {
+              if (updatedValues.hasOwnProperty(key)) {
+                updatedValues[key] = String(nutrition_values_json[key]);
+              }
+            }
+            setmealNutritionValues(updatedValues);
+            //send to summery
+            console.log("updated:", updatedValues);
+            showSummary();
+          }
+        } else if (data.status === "processing") {
+          console.log("still processing");
+          // If still processing, continue polling
+          setTimeout(getNutritionValuesFromDB, 1000); // Poll every 1 second
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   }
 
   const fillMealForm = () => {
@@ -1040,7 +1102,7 @@ export default function App() {
               containerStyle={buttonStyles.container}
               title="Search"
               color="#d13876"
-              onPress={SearchMealInDB}
+              onPress={SearchMealInCustomMeals}
             />
             <Btn
               icon={<Icon name="rotate-right" size={15} color="#f01f72" />}

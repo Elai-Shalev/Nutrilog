@@ -175,6 +175,21 @@ router.post('/get-new-item', (req, res) => {
 }
 });
 
+//Receive other option from the user
+router.post('/get-user-item', (req, res) => {
+  try{
+    console.log(req.body);
+    const user_option = req.body.food_name;
+    console.log('the users option is ' + user_option);
+    recognition_done = true;
+    getFoodNutritionValuesFromDB(user_option);
+    res.json({ status: 'success' });
+} catch (error) {
+  console.error('Error:', error);
+  res.status(500).json({ status: 'error', message: 'Internal server error' });
+}
+});
+
 
 //Send the nutrition values to the frontend
 router.get('/get-NutritionValues', async (req, res) => {
@@ -190,6 +205,31 @@ router.get('/get-NutritionValues', async (req, res) => {
     res.json({ status: 'processing' });
   }
 });
+
+async function getFoodNutritionValuesFromDB(user_option){
+  nutrition_values = null; //check --complete
+  //while (wheight_done == false){};
+  const nutrition_values_object = await db.getItem(user_option, "users_history");
+  console.log(nutrition_values_object);
+  console.log(typeof(nutrition_values_object));
+  const nutrition_values_string = JSON.stringify(nutrition_values_object);
+  console.log(typeof(nutrition_values_string));
+  nutrition_values = JSON.parse(nutrition_values_string);
+
+  for (const key in nutrition_values) {
+    if (key.endsWith("_g") && typeof nutrition_values[key] === "number") {
+      nutrition_values[key] = (nutrition_values[key] * weight) / 100;
+    }
+    if (key == "_id"){
+      delete nutrition_values[key];
+    }
+  }
+
+  nutrition_done = true;
+  const timestamp = new Date().toISOString();
+  nutrition_values.timestamp = timestamp;
+  saveMealToDB(nutrition_values); //save only the first item --complete
+}
 
 //Get the nutrition values of the option
 function getFoodNutritionValues(user_option){
@@ -251,22 +291,18 @@ function saveMealToDB(item){
   return item;
 }
 
-//Send nutrition values to the frontend
-router.get('/get-NutritionValues', async (req, res) => {
-  while (nutrition_done == false) {};
-  try {
-  const data = {
+//Send the nutrition values to the frontend
+router.get('/get-NutritionValuesFromDB', async (req, res) => {
+  if (nutrition_values !== null) {
+    var data = {
       "message": "",
-      "values": nutrition_values
-  }
-
-  res.setHeader("Content-Type", "application/json")
-  res.writeHead(200);
-  res.end(JSON.stringify(data,null))
-  }
-  catch (e){
-  console.error('Error:', error);
-  res.status(500).json({ status: 'error', message: 'error sending nutrition values'});
+      "nutrition_values": nutrition_values
+    };
+    res.setHeader("Content-Type", "application/json");
+    var jsonData = JSON.stringify(data, null); // Convert the data to JSON string
+    res.status(200).json({ status: 'success', data: jsonData }); // Send the response once
+  } else {
+    res.json({ status: 'processing' });
   }
 });
 
