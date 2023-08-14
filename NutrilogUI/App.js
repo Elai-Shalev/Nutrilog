@@ -20,6 +20,10 @@ import {
   ActivityIndicator,
 } from "react-native-elements";
 import Icon from "react-native-vector-icons/FontAwesome";
+import * as ImageManipulator from 'expo-image-manipulator';
+import * as MediaLibrary from 'expo-media-library';
+
+
 
 export default function App() {
   const [startCamera, setStartCamera] = useState(false); //Bollean - sets the permission to start taking a picture
@@ -164,7 +168,7 @@ export default function App() {
   const [searchInCustomMeals, setsearchInCustomMeals] = useState(false);
   const [waitingforhistory, setwaitingforhistory] = useState(false);
   let camera;
-  const IPAddress = "172.20.10.3";
+  const IPAddress = "10.0.0.4";
 
   //*****************************************************************************
   //*******************************Functions:************************************
@@ -249,9 +253,20 @@ export default function App() {
     setPreviewVisible(false);
 
     try {
+      
+      console.log()
+
+       // New code here
+       const manipResult = await ImageManipulator.manipulateAsync(
+        savedPhoto.uri,
+        //[{ rotate: 90 }, { flip: ImageManipulator.FlipType.Vertical }],
+        [],
+        { compress: 0.1, format: ImageManipulator.SaveFormat.JPEG });
+      MediaLibrary.saveToLibraryAsync(manipResult.uri);
+      
       const photoData = new FormData();
       photoData.append("photo", {
-        uri: savedPhoto.uri,
+        uri: manipResult.uri,
         name: "photo.jpg",
         type: "image/jpg",
       });
@@ -301,8 +316,10 @@ export default function App() {
   const getWeight = async () => {
     setFoodCurrentlyWeighted(true);
     try {
+      console.log("Before CALL")
       answer = await axios.get("http://" + IPAddress + ":3000/api/start-weigh");
       weight = answer.data.weigh_val;
+      console.log("AFTER CALL")
     } catch (e) {
       console.log(e);
       Alert.alert("couldn't connect to server");

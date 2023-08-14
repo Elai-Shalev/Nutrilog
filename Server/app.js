@@ -1,4 +1,4 @@
-//const scale = require("../Scale/read_scale.js"); --complete
+const scale = require("./Scale/read_scale.js"); 
 const db = require("./DB/db.js")
 const env = require('dotenv').config();
 const express = require('express');
@@ -32,14 +32,13 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-db.connect(); //Open the DB connection
-
-var wheight = 10;//Change to null --complete
+var wheight = null;
 var topResults = null;
 var nutrition_values = null;
 var last5 = null;
 
-var wheight_done = true;//Change to false --complete
+//var wheight_done = false;
+var wheight_done = true;
 var recognition_done = false;
 var nutrition_done = false;
 
@@ -47,10 +46,13 @@ var nutrition_done = false;
 router.get('/start-weigh', async (req, res) => {
   try {
   // activate scale function --complete
-  //scale.getWeight(); --complete
-  scale_reading = "10";
+  //scale.getWeight(); 
+  //let scale_reading = await scale.find_value();
+  let scale_reading = 10
   console.log("the weigh is: " + scale_reading);
 
+  let wheight = scale_reading;
+  
   const data = {
     message: "Weigh Done",
     weigh_val: scale_reading,
@@ -59,10 +61,14 @@ router.get('/start-weigh', async (req, res) => {
   res.setHeader("Content-Type", "application/json");
   res.writeHead(200);
   res.end(JSON.stringify(data, null));
+  wheight_done = true;
 } catch (e) {}
-wheight = scale_reading;
-wheight_done = true;
+
 });
+
+
+
+
 
 //In case we want new item we upload the item's photo to the server
 router.post('/upload', upload.single('photo'), (req, res) => {
@@ -340,6 +346,15 @@ router.get('/reset-values', async (req, res) => {
     res.status(500).json({ status: 'error', message: 'error reset values'});
   }
   });
+
+  router.get('/', (req,res) => {
+    res.send("UP")
+  })
+
+  router.get('/api', (req,res) => {
+    res.send("UP")
+  })
+
 
 //DB general functions
 async function getItemFromDB(itemName, dbCollection) {
