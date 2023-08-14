@@ -160,7 +160,7 @@ export default function App() {
   const [inputForSearchInDB, setinputForSearchInDB] = useState("");
   const [HistoryMealIndex, setHistoryMealIndex] = useState(-1);
   let camera;
-  const IPAddress = "192.168.1.35";
+  const IPAddress = "192.168.1.183";
 
   //*****************************************************************************
   //*******************************Functions:************************************
@@ -309,8 +309,8 @@ export default function App() {
           indexData
         );
         console.log("call to  getNutritionValuesFromServer func");
-        // getNutritionValuesFromServer();
-        showSummary();
+        getNutritionValuesFromServer();
+        //showSummary();
       } catch (error) {
         console.error("Error getting nutrition_values", error);
       }
@@ -335,13 +335,14 @@ export default function App() {
             //func not found- go to fill form
           } else {
             const updatedValues = { ...mealNutritionValues };
-            nutrition_values.forEach((item) => {
-              for (const key in item) {
+            if (nutrition_values.length > 0) {
+              const firstItem = nutrition_values[0];
+              for (const key in firstItem) {
                 if (updatedValues.hasOwnProperty(key)) {
-                  updatedValues[key] = String(item[key]);
+                  updatedValues[key] = String(firstItem[key]);
                 }
               }
-            });
+            }
             setmealNutritionValues(updatedValues);
             //send to summery
             console.log("updated:", updatedValues);

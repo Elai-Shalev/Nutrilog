@@ -32,6 +32,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+db.connect(); //Open the DB connection
+
 var wheight = 10;//Change to null --complete
 var topResults = null;
 var nutrition_values = null;

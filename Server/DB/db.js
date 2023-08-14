@@ -22,7 +22,6 @@ async function connect() {
 async function getItem(itemName, dbCollection){
 
     try {
-        connect();
         const db = client.db(dbName);
         const collection = db.collection(dbCollection);
         const item = await collection.findOne({ name: itemName})
@@ -33,14 +32,8 @@ async function getItem(itemName, dbCollection){
                 console.log("Item not found");
             }
         }
-
-
     catch (e) {
         console.log(e) 
-    }
-    finally {
-        await client.close();
-        console.log('Disconnected from MongoDB');
     }
 }
 
@@ -48,7 +41,6 @@ async function getItem(itemName, dbCollection){
 async function addItem(item, dbCollection) { //new data is a json file. 
     
     try {
-        connect();
         const db = client.db(dbName);
         const collection = db.collection(dbCollection);
         const result = await collection.insertOne(item)
@@ -57,10 +49,6 @@ async function addItem(item, dbCollection) { //new data is a json file.
     }
     catch (e) {
         console.log(e)
-    }
-    finally {
-        await client.close();
-        console.log('Disconnected from MongoDB');
     }
 } 
 
