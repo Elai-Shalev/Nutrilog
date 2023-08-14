@@ -159,8 +159,12 @@ export default function App() {
   const [searchInDB, setsearchInDB] = useState(false);
   const [inputForSearchInDB, setinputForSearchInDB] = useState("");
   const [HistoryMealIndex, setHistoryMealIndex] = useState(-1);
+  const [inputForSearchCustomMeals, setinputForSearchCustomMeals] =
+    useState("");
+  const [searchInCustomMeals, setsearchInCustomMeals] = useState(false);
+  const [waitingforhistory, setwaitingforhistory] = useState(false);
   let camera;
-  const IPAddress = "192.168.1.183";
+  const IPAddress = "192.168.1.35";
 
   //*****************************************************************************
   //*******************************Functions:************************************
@@ -180,7 +184,14 @@ export default function App() {
   };
 
   const historyPage = () => {
-    setHistoryReq(true);
+    setwaitingforhistory(true);
+    //eti gets history here. --complete
+    setTimeout(() => {
+      setHistoryReq(true);
+      setwaitingforhistory(false);
+    }, 10000); //need to delte - just for now for checking! and these need to be out of comment!!!!
+    // setHistoryReq(true);
+    // setwaitingforhistory(false);
   };
 
   const newMeal = () => {
@@ -190,10 +201,15 @@ export default function App() {
   const chooseFromData = () => {
     setFromDataOption(true);
     setsearchInDB(false);
+    setsearchInCustomMeals(false);
   };
 
   const searchInDBPage = () => {
     setsearchInDB(true);
+  };
+
+  const searchInCustomMealsPage = () => {
+    setsearchInCustomMeals(true);
   };
 
   //This is triggerd within the camera component inside the view
@@ -211,13 +227,22 @@ export default function App() {
     setSavedPhoto(null);
     setPreviewVisible(false);
     setFromDataOption(false);
+    requestPermission();
   };
 
   const SearchMealInDB = () => {
-    //Eti will now send inputForSearchInDB to back and look for it --complete
     sendNewItem(inputForSearchInDB);
     console.log("now looks for", inputForSearchInDB);
     setsearchInDB(false);
+    setsummaryIsReady(true);
+    setFromDataOption(false);
+  };
+
+  const SearchMealInCustomMeals = () => {
+    //Eti will now send  inputForSearchCustomMeals to back and look for it --complete
+    // sendNewItem(inputForSearchInDB);
+    console.log("now looks for", inputForSearchCustomMeals);
+    setsearchInCustomMeals(false);
     setsummaryIsReady(true);
     setFromDataOption(false);
   };
@@ -559,6 +584,9 @@ export default function App() {
     setsearchInDB(false);
     setinputForSearchInDB("");
     setHistoryMealIndex(-1);
+    setinputForSearchCustomMeals("");
+    setsearchInCustomMeals(false);
+    let camera;
   };
 
   async function sendResetToServer() {
@@ -585,7 +613,8 @@ export default function App() {
           !NewMealRequest &&
           !FromDataOption &&
           !summaryIsReady &&
-          !ReceivedOptionsFromBack && (
+          !ReceivedOptionsFromBack &&
+          !waitingforhistory && (
             <View style={GeneralViewStyle}>
               <Header />
               <Btn
@@ -635,6 +664,13 @@ export default function App() {
               style={{ width: 200, height: 200 }}
             />
             <Text style={WeighWaitDesign2}>now weighing your food...</Text>
+            <LinearProgress
+              style={{ marginVertical: 10, width: 300, height: 20 }}
+              color="#e66abc"
+              variant="indeterminate"
+              animation={true}
+              borderRadius={8}
+            />
           </View>
         )}
         {doneWeighting &&
@@ -667,8 +703,33 @@ export default function App() {
                 color="#d13876"
                 onPress={chooseFromData}
               />
+              <Btn
+                icon={<Icon name="home" size={15} color="#f01f72" />}
+                buttonStyle={buttonStyles.button}
+                containerStyle={buttonStyles.container}
+                title="Back home"
+                color="#d13876"
+                onPress={BackHome}
+              />
             </View>
           )}
+        {waitingforhistory && (
+          <View style={ImageDesign}>
+            <Text style={WeighWaitDesign1}>Please Wait</Text>
+            <Image
+              source={require("./assets/PinkClock.png")}
+              style={{ width: 200, height: 200 }}
+            />
+            <Text style={WeighWaitDesign2}>now retrieving your history...</Text>
+            <LinearProgress
+              style={{ marginVertical: 10, width: 300, height: 20 }}
+              color="#e66abc"
+              variant="indeterminate"
+              animation={true}
+              borderRadius={8}
+            />
+          </View>
+        )}
         {historyPageReq && HistoryMealIndex == -1 && (
           <View style={GeneralViewStyle}>
             <Text style={HistoryPageDesign1}>Meals History:</Text>
@@ -810,6 +871,13 @@ export default function App() {
             <Text style={WeighWaitDesign2}>
               now extracting data from picture..
             </Text>
+            <LinearProgress
+              style={{ marginVertical: 10, width: 300, height: 20 }}
+              color="#e66abc"
+              variant="indeterminate"
+              animation={true}
+              borderRadius={8}
+            />
           </View>
         )}
         {ReceivedOptionsFromBack &&
@@ -845,7 +913,7 @@ export default function App() {
               />
             </View>
           )}
-        {FromDataOption && !searchInDB && (
+        {FromDataOption && !searchInDB && !searchInCustomMeals && (
           <View style={GeneralViewStyle}>
             <Text style={FromDataOptionDesign}>
               Please choose how to retreive data:
@@ -857,6 +925,14 @@ export default function App() {
               title="Search in DB"
               color="#d13876"
               onPress={searchInDBPage}
+            />
+            <Btn
+              icon={<Icon name="user" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="Previous Custom Meals"
+              color="#d13876"
+              onPress={searchInCustomMealsPage}
             />
             <Btn
               icon={<Icon name="file" size={15} color="#f01f72" />}
@@ -885,6 +961,42 @@ export default function App() {
               placeholder={"Enter a meal name to look for"}
               value={inputForSearchInDB}
               onChangeText={setinputForSearchInDB}
+              containerStyle={stylesForSheetFill.container}
+              inputContainerStyle={{ width: "100%", borderBottomWidth: 0 }}
+              leftIcon={{
+                type: "font-awesome",
+                name: "search",
+                size: 15,
+                color: "pink",
+              }}
+            />
+            <Btn
+              icon={<Icon name="database" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="Search"
+              color="#d13876"
+              onPress={SearchMealInDB}
+            />
+            <Btn
+              icon={<Icon name="rotate-right" size={15} color="#f01f72" />}
+              buttonStyle={buttonStyles.button}
+              containerStyle={buttonStyles.container}
+              title="Back"
+              color="#d13876"
+              onPress={chooseFromData}
+            />
+          </View>
+        )}
+        {searchInCustomMeals && (
+          <View style={GeneralViewStyle}>
+            <Text style={FromDataOptionDesign}>
+              Please look up your custom meal name:
+            </Text>
+            <Input
+              placeholder={"Enter a meal name to look for"}
+              value={inputForSearchCustomMeals}
+              onChangeText={setinputForSearchCustomMeals}
               containerStyle={stylesForSheetFill.container}
               inputContainerStyle={{ width: "100%", borderBottomWidth: 0 }}
               leftIcon={{
@@ -977,6 +1089,7 @@ export default function App() {
               value={mealNutritionValues["protein_g"] / 40}
               variant="determinate"
               animation={true}
+              borderRadius={6}
             />
             <Btn
               icon={<Icon name="home" size={15} color="#f01f72" />}
@@ -1028,6 +1141,7 @@ export default function App() {
               value={historyFromServer[HistoryMealIndex]["protein_g"] / 40}
               variant="determinate"
               animation={true}
+              borderRadius={6}
             />
             <Btn
               icon={<Icon name="home" size={15} color="#f01f72" />}
