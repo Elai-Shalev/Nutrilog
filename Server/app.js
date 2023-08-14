@@ -37,6 +37,7 @@ db.connect(); //Open the DB connection
 var wheight = 10;//Change to null --complete
 var topResults = null;
 var nutrition_values = null;
+var last5 = null;
 
 var wheight_done = true;//Change to false --complete
 var recognition_done = false;
@@ -269,6 +270,23 @@ router.get('/get-NutritionValues', async (req, res) => {
   }
 });
 
+//Send the last five meals to the frontend
+router.get('/get-history', async (req, res) => {
+  last5 = await db.getLastFiveItems("users_history");
+  if (last5 !== null) {
+    console.log(last5);
+    var data = {
+      "message": "",
+      "lastFiveMeals": last5
+    };
+    res.setHeader("Content-Type", "application/json");
+    var jsonData = JSON.stringify(data, null); // Convert the data to JSON string
+    res.status(200).json({ status: 'success', data: jsonData }); // Send the response once
+  } else {
+    res.json({ status: 'processing' });
+  }
+});
+
 //Reset the values when user press Back Home
 router.get('/reset-values', async (req, res) => {
   try {
@@ -286,7 +304,6 @@ router.get('/reset-values', async (req, res) => {
     res.status(500).json({ status: 'error', message: 'error reset values'});
   }
   });
-
 
 //DB general functions
 async function getItemFromDB(itemName, dbCollection) {

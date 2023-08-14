@@ -52,9 +52,28 @@ async function addItem(item, dbCollection) { //new data is a json file.
     }
 } 
 
+async function getLastFiveItems(dbCollection) {
+  
+    try {
+
+      const db = client.db(dbName);
+      const collection = db.collection(dbCollection);
+  
+      const cursor = collection.find().sort({ timestamp: -1 }).limit(5);
+      const lastFiveItems = await cursor.toArray();
+      return lastFiveItems;
+    } catch (error) {
+      console.error('Error:', error);
+      return [];
+    } finally {
+      client.close();
+    }
+  }
+
 module.exports = {
     connect,
     addItem,
     getItem,
+    getLastFiveItems,
   };
 

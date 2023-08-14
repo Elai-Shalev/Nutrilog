@@ -164,7 +164,7 @@ export default function App() {
   const [searchInCustomMeals, setsearchInCustomMeals] = useState(false);
   const [waitingforhistory, setwaitingforhistory] = useState(false);
   let camera;
-  const IPAddress = "192.168.1.35";
+  const IPAddress = "172.20.10.3";
 
   //*****************************************************************************
   //*******************************Functions:************************************
@@ -461,6 +461,30 @@ export default function App() {
   showHistoryMealSummary = (value) => {
     setHistoryMealIndex(value);
   };
+
+  async function getHistoryFromServer() {
+    await axios
+      .get("http://" + IPAddress + ":3000/api/get-history")
+      .then((response) => {
+        const data = response.data;
+        if (data.status === "success") {
+          // Process the received result from the server
+          console.log("received data");
+          //console.log("data is:"+ data);
+          //console.log("data.data is:" +data.data);
+          const parsedData = JSON.parse(data.data);
+          const history = parsedData.lastFiveMeals;
+          console.log(history);
+        } else if (data.status === "processing") {
+          console.log("still processing");
+          // If still processing, continue polling
+          setTimeout(getHistoryFromServer, 1000); // Poll every 1 second
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  }
 
   const BackHome = () => {
     setStartCamera(false);
