@@ -71,7 +71,7 @@ export default function App() {
     "dashboard",
   ]; // Define an array of icon names
   const [mealNutritionValues, setmealNutritionValues] = useState({
-    name: "Potato and lamb",
+    name: "",
     calories: "",
     fat_total_g: "",
     fat_saturated_g: "",
@@ -85,63 +85,63 @@ export default function App() {
   });
   const [historyFromServer, setHistoryFromServer] = useState([
     {
-      name: "Rice with beans",
+      name: "",
       calories: "",
       fat_total_g: "",
       fat_saturated_g: "",
-      protein_g: "10",
+      protein_g: "",
       sodium_mg: "",
       potassium_mg: "",
       cholesterol_mg: "",
       carbohydrates_total_g: "",
       fiber_g: "",
       sugar_g: "",
-      timestamp: "2023-08-13T18:54:46.753Z",
+      timestamp: "",
     },
     {
-      name: "Turkey sandwitch",
+      name: "",
       calories: "",
       fat_total_g: "",
       fat_saturated_g: "",
-      protein_g: "30",
+      protein_g: "",
       sodium_mg: "",
       potassium_mg: "",
       cholesterol_mg: "",
       carbohydrates_total_g: "",
       fiber_g: "",
       sugar_g: "",
-      timestamp: "2023-08-12T18:54:46.753Z",
+      timestamp: "",
     },
     {
-      name: "Pasta carbonara",
+      name: "",
       calories: "",
       fat_total_g: "",
       fat_saturated_g: "",
-      protein_g: "22",
+      protein_g: "",
       sodium_mg: "",
       potassium_mg: "",
       cholesterol_mg: "",
       carbohydrates_total_g: "",
       fiber_g: "",
       sugar_g: "",
-      timestamp: "2023-08-10T18:54:46.753Z",
+      timestamp: "",
     },
     {
-      name: "Burger and fries",
+      name: "",
       calories: "",
       fat_total_g: "",
       fat_saturated_g: "",
-      protein_g: "8",
+      protein_g: "",
       sodium_mg: "",
       potassium_mg: "",
       cholesterol_mg: "",
       carbohydrates_total_g: "",
       fiber_g: "",
       sugar_g: "",
-      timestamp: "2023-08-09T18:54:46.753Z",
+      timestamp: "",
     },
     {
-      name: "Yougurt with granola",
+      name: "",
       calories: "",
       fat_total_g: "",
       fat_saturated_g: "",
@@ -152,7 +152,7 @@ export default function App() {
       carbohydrates_total_g: "",
       fiber_g: "",
       sugar_g: "",
-      timestamp: "2023-08-09T12:54:46.753Z",
+      timestamp: "",
     },
   ]);
   const [summaryIsReady, setsummaryIsReady] = useState(false);
@@ -164,7 +164,7 @@ export default function App() {
   const [searchInCustomMeals, setsearchInCustomMeals] = useState(false);
   const [waitingforhistory, setwaitingforhistory] = useState(false);
   let camera;
-  const IPAddress = "172.20.10.3";
+  const IPAddress = "192.168.1.35";
 
   //*****************************************************************************
   //*******************************Functions:************************************
@@ -184,14 +184,7 @@ export default function App() {
   };
 
   const historyPage = () => {
-    setwaitingforhistory(true);
-    //eti gets history here. --complete
-    setTimeout(() => {
-      setHistoryReq(true);
-      setwaitingforhistory(false);
-    }, 10000); //need to delte - just for now for checking! and these need to be out of comment!!!!
-    // setHistoryReq(true);
-    // setwaitingforhistory(false);
+    getHistoryFromServer();
   };
 
   const newMeal = () => {
@@ -463,6 +456,7 @@ export default function App() {
   };
 
   async function getHistoryFromServer() {
+    setwaitingforhistory(true);
     await axios
       .get("http://" + IPAddress + ":3000/api/get-history")
       .then((response) => {
@@ -475,6 +469,15 @@ export default function App() {
           const parsedData = JSON.parse(data.data);
           const history = parsedData.lastFiveMeals;
           console.log(history);
+          for (let i = 0; i <= 4; i++) {
+            for (const key in history[i]) {
+              if (historyFromServer[i].hasOwnProperty(key)) {
+                historyFromServer[i][key] = String(history[i][key]);
+              }
+            }
+          }
+          setHistoryReq(true);
+          setwaitingforhistory(false);
         } else if (data.status === "processing") {
           console.log("still processing");
           // If still processing, continue polling
@@ -533,74 +536,74 @@ export default function App() {
     });
     setHistoryFromServer([
       {
-        name: "Rice with beans",
+        name: "",
         calories: "",
         fat_total_g: "",
         fat_saturated_g: "",
-        protein_g: "10",
+        protein_g: "",
         sodium_mg: "",
         potassium_mg: "",
         cholesterol_mg: "",
         carbohydrates_total_g: "",
         fiber_g: "",
         sugar_g: "",
-        timestamp: "2023-08-13T18:54:46.753Z",
+        timestamp: "",
       },
       {
-        name: "Turkey sandwitch",
+        name: "",
         calories: "",
         fat_total_g: "",
         fat_saturated_g: "",
-        protein_g: "30",
+        protein_g: "",
         sodium_mg: "",
         potassium_mg: "",
         cholesterol_mg: "",
         carbohydrates_total_g: "",
         fiber_g: "",
         sugar_g: "",
-        timestamp: "2023-08-12T18:54:46.753Z",
+        timestamp: "",
       },
       {
-        name: "Pasta carbonara",
+        name: "",
         calories: "",
         fat_total_g: "",
         fat_saturated_g: "",
-        protein_g: "22",
+        protein_g: "",
         sodium_mg: "",
         potassium_mg: "",
         cholesterol_mg: "",
         carbohydrates_total_g: "",
         fiber_g: "",
         sugar_g: "",
-        timestamp: "2023-08-10T18:54:46.753Z",
+        timestamp: "",
       },
       {
-        name: "Burger and fries",
+        name: "",
         calories: "",
         fat_total_g: "",
         fat_saturated_g: "",
-        protein_g: "8",
+        protein_g: "",
         sodium_mg: "",
         potassium_mg: "",
         cholesterol_mg: "",
         carbohydrates_total_g: "",
         fiber_g: "",
         sugar_g: "",
-        timestamp: "2023-08-09T18:54:46.753Z",
+        timestamp: "",
       },
       {
-        name: "Yougurt with granola",
+        name: "",
         calories: "",
         fat_total_g: "",
         fat_saturated_g: "",
-        protein_g: "14",
+        protein_g: "",
         sodium_mg: "",
         potassium_mg: "",
         cholesterol_mg: "",
         carbohydrates_total_g: "",
         fiber_g: "",
         sugar_g: "",
-        timestamp: "2023-08-09T12:54:46.753Z",
+        timestamp: "",
       },
     ]);
     setsummaryIsReady(false);
@@ -788,11 +791,12 @@ export default function App() {
             />
             <Text style={HistoryPageDesign2}>
               In the past{" "}
-              {Math.floor(
-                (new Date().getTime() -
-                  new Date(historyFromServer[4].timestamp).getTime()) /
-                  (1000 * 60 * 60 * 24)
-              )}{" "}
+              {1 +
+                Math.floor(
+                  (new Date().getTime() -
+                    new Date(historyFromServer[4].timestamp).getTime()) /
+                    (1000 * 60 * 60 * 24)
+                )}{" "}
               days, you've consumed on average{"\n"}{" "}
               {(
                 ((Number(historyFromServer[0].protein_g) +
