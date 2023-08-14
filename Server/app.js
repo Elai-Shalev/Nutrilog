@@ -39,8 +39,8 @@ var topResults = null;
 var nutrition_values = null;
 var last5 = null;
 
-//var wheight_done = false;
-var wheight_done = true;
+var wheight_done = false;
+//var wheight_done = true;
 var recognition_done = false;
 var nutrition_done = false;
 
@@ -48,12 +48,13 @@ var nutrition_done = false;
 router.get('/start-weigh', async (req, res) => {
   try {
   // activate scale function --complete
-  //scale.getWeight(); 
-  //let scale_reading = await scale.find_value();
-  let scale_reading = 10
+  wheight_done = false
+  scale.getWeight(); 
+  let scale_reading = await scale.find_value();
+  //let scale_reading = 10
   console.log("the weigh is: " + scale_reading);
 
-  let wheight = scale_reading;
+  wheight = scale_reading;
   
   const data = {
     message: "Weigh Done",
@@ -218,25 +219,29 @@ async function getFoodNutritionValuesFromDB(user_option){
   nutrition_values = null; //check --complete
   //while (wheight_done == false){};
   const nutrition_values_object = await db.getItem(user_option, "users_history");
-  console.log(nutrition_values_object);
-  console.log(typeof(nutrition_values_object));
-  const nutrition_values_string = JSON.stringify(nutrition_values_object);
-  console.log(typeof(nutrition_values_string));
-  nutrition_values = JSON.parse(nutrition_values_string);
+  if (nutrition_values_object == 0) {
+    nutrition_values = "not found";
+    } else {
+    console.log(nutrition_values_object);
+    console.log(typeof(nutrition_values_object));
+    const nutrition_values_string = JSON.stringify(nutrition_values_object);
+    console.log(typeof(nutrition_values_string));
+    nutrition_values = JSON.parse(nutrition_values_string);
 
-  for (const key in nutrition_values) {
-    if (key.endsWith("_g") && typeof nutrition_values[key] === "number") {
-      nutrition_values[key] = (nutrition_values[key] * weight) / 100;
+    for (const key in nutrition_values) {
+      if (key.endsWith("_g") && typeof nutrition_values[key] === "number") {
+        nutrition_values[key] = (nutrition_values[key] * wheight) / 100;
+      }
+      if (key == "_id"){
+        delete nutrition_values[key];
+      }
     }
-    if (key == "_id"){
-      delete nutrition_values[key];
-    }
+
+    nutrition_done = true;
+    const timestamp = new Date().toISOString();
+    nutrition_values.timestamp = timestamp;
+    saveMealToDB(nutrition_values); //save only the first item --complete
   }
-
-  nutrition_done = true;
-  const timestamp = new Date().toISOString();
-  nutrition_values.timestamp = timestamp;
-  saveMealToDB(nutrition_values); //save only the first item --complete
 }
 
 //Get the nutrition values of the option

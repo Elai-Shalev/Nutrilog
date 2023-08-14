@@ -44,6 +44,7 @@ async function getItem(itemName, dbCollection){
                 return item
                 } else {
                 console.log("Item not found");
+                return 0;
             }
         }
     catch (e) {
@@ -79,9 +80,7 @@ async function getLastFiveItems(dbCollection) {
     } catch (error) {
       console.error('Error:', error);
       return [];
-    } finally {
-      client.close();
-    }
+    } 
   }
 
 module.exports = {

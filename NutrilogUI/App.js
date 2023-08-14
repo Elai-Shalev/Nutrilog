@@ -316,19 +316,23 @@ export default function App() {
   const getWeight = async () => {
     setFoodCurrentlyWeighted(true);
     try {
+      //let answer = null;
+      //let weight = null;
       console.log("Before CALL")
-      answer = await axios.get("http://" + IPAddress + ":3000/api/start-weigh");
-      weight = answer.data.weigh_val;
+      let answer = await axios.get("http://" + IPAddress + ":3000/api/start-weigh");
+      let weight = answer.data.weigh_val;
+
       console.log("AFTER CALL")
+      setFoodCurrentlyWeighted(false);
+      setDoneWeighting(true);
+      setSavedWeight(weight);
+      
     } catch (e) {
       console.log(e);
       Alert.alert("couldn't connect to server");
       BackHome();
     }
-    setFoodCurrentlyWeighted(false);
-    setDoneWeighting(true);
-    // setSavedWeight(answer); --complete
-    setSavedWeight(weight);
+
   };
 
   const sendChosenIndex = async (index) => {
@@ -788,7 +792,7 @@ export default function App() {
           !fillMealFormSelected && (
             <View style={styles.container}>
               <Text style={WeightReadyDesign}>
-                Your meal weight:{"\n"} {weight}
+                Your meal weight:{"\n"} {savedWeight}
               </Text>
               <Text style={WeighIsReadyDesign}>
                 Please Decide how to precceed:
