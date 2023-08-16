@@ -40,18 +40,15 @@ var nutrition_values = null;
 var last5 = null;
 
 var wheight_done = false;
-//var wheight_done = true;
 var recognition_done = false;
 var nutrition_done = false;
 
 //First we weight the food
 router.get('/start-weigh', async (req, res) => {
   try {
-  // activate scale function --complete
   wheight_done = false
   scale.getWeight(); 
   let scale_reading = await scale.find_value();
-  //let scale_reading = 10
   console.log("the weigh is: " + scale_reading);
 
   wheight = scale_reading;
@@ -68,10 +65,6 @@ router.get('/start-weigh', async (req, res) => {
 } catch (e) {}
 
 });
-
-
-
-
 
 //In case we want new item we upload the item's photo to the server
 router.post('/upload', upload.single('photo'), (req, res) => {
@@ -184,7 +177,7 @@ router.post('/get-new-item', (req, res) => {
 }
 });
 
-//Receive other option from the user
+//Receive option from the user to search in db
 router.post('/get-user-item', (req, res) => {
   try{
     console.log(req.body);
@@ -216,8 +209,7 @@ router.get('/get-NutritionValues', async (req, res) => {
 });
 
 async function getFoodNutritionValuesFromDB(user_option){
-  nutrition_values = null; //check --complete
-  //while (wheight_done == false){};
+  nutrition_values = null;
   const nutrition_values_object = await db.getItem(user_option, "users_history");
   if (nutrition_values_object == 0) {
     nutrition_values = "not found";
@@ -240,13 +232,13 @@ async function getFoodNutritionValuesFromDB(user_option){
     nutrition_done = true;
     const timestamp = new Date().toISOString();
     nutrition_values.timestamp = timestamp;
-    saveMealToDB(nutrition_values); //save only the first item --complete
+    saveMealToDB(nutrition_values); 
   }
 }
 
 //Get the nutrition values of the option
 function getFoodNutritionValues(user_option){
-  nutrition_values = null; //check --complete
+  nutrition_values = null; 
   while (wheight_done == false){};
   var query = wheight+'g '+user_option;
   request.get({
@@ -272,12 +264,12 @@ function getFoodNutritionValues(user_option){
       console.log(nutrition_values);
       const timestamp = new Date().toISOString();
       nutrition_values[0].timestamp = timestamp;
-      saveMealToDB(nutrition_values[0]); //save only the first item --complete
+      saveMealToDB(nutrition_values[0]); 
     }
   });
 }
 
-//Receive an option from the user
+//Receive the nutrition values of the new item from the user
 router.post('/get-meal-values', (req, res) => {
   try{
     const meal = req.body.meal_values;

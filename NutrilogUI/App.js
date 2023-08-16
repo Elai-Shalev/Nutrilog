@@ -236,7 +236,6 @@ export default function App() {
   };
 
   const SearchMealInCustomMeals = () => {
-    //Eti will now send  inputForSearchCustomMeals to back and look for it --complete
     sendUserItem(inputForSearchCustomMeals);
     console.log("now looks for", inputForSearchCustomMeals);
     setsearchInCustomMeals(false);
@@ -256,10 +255,8 @@ export default function App() {
       
       console.log()
 
-       // New code here
        const manipResult = await ImageManipulator.manipulateAsync(
         savedPhoto.uri,
-        //[{ rotate: 90 }, { flip: ImageManipulator.FlipType.Vertical }],
         [],
         { compress: 0.1, format: ImageManipulator.SaveFormat.JPEG });
       MediaLibrary.saveToLibraryAsync(manipResult.uri);
@@ -316,8 +313,6 @@ export default function App() {
   const getWeight = async () => {
     setFoodCurrentlyWeighted(true);
     try {
-      //let answer = null;
-      //let weight = null;
       console.log("Before CALL")
       let answer = await axios.get("http://" + IPAddress + ":3000/api/start-weigh");
       let weight = answer.data.weigh_val;
@@ -349,7 +344,6 @@ export default function App() {
         );
         console.log("call to  getNutritionValuesFromServer func");
         getNutritionValuesFromServer();
-        //showSummary();
       } catch (error) {
         console.error("Error getting nutrition_values", error);
       }
@@ -450,12 +444,7 @@ export default function App() {
           } else {
             const updatedValues = { ...mealNutritionValues };
             const nutrition_values_string = JSON.stringify(nutrition_values);
-            //console.log(nutrition_values_string);
-            //console.log(typeof(nutrition_values_string));
             const nutrition_values_json = JSON.parse(nutrition_values_string);
-            //console.log(nutrition_values_json);
-            //console.log(typeof(nutrition_values_json));
-            //console.log(nutrition_values_json.length);
             for (const key in nutrition_values_json) {
               if (updatedValues.hasOwnProperty(key)) {
                 updatedValues[key] = String(nutrition_values_json[key]);
@@ -547,8 +536,6 @@ export default function App() {
         if (data.status === "success") {
           // Process the received result from the server
           console.log("received data");
-          //console.log("data is:"+ data);
-          //console.log("data.data is:" +data.data);
           const parsedData = JSON.parse(data.data);
           const history = parsedData.lastFiveMeals;
           console.log(history);
