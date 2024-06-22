@@ -3,7 +3,7 @@
 ## About The Project 
 Nutrilog is a service that lets you upload, document, and analyse your everyday meals.
 Many people with dietary restrictions know the pain of documenting your daily food intake. 
-After Elamar noticed her father spending hours in the kitchen weighing is food, we knew we could make a solution to alleviate his pain and others' suffering from kidney issues, diabetes and more. 
+After Elamar noticed her father spending hours in the kitchen weighing his food, we knew we could make a solution to alleviate his pain and others' suffering from kidney issues, diabetes and more. 
 
 ## Flow of Usage
 Upon loading the app, the user is prompted to view their meal history, or to add a new meal. 
